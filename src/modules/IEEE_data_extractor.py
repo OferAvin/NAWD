@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 import numpy as np
 import mne
 import os
 
+from .properties import IEEE_properties as props
 from .utils import remove_noisy_trials
-
 
 class LazyProperty:
     def __init__(self, method):
@@ -350,28 +347,32 @@ def extract_ieee_data_by_sub(sub_list, filterLim, tmin=-1, tmax=5, select_label=
         fs = d.fs
             
         stackedDict = {'segmentedEEG': segmentedEEG, 'labels': labels, 'sub': sub, 'fs': fs,
-               'chanLabels': ch_names[:26], 'trigLabels': ['left', 'right', 'foot', 'rest'], 'trials_N': len(labels)}
+               'chanLabels': d.ch_names[:26], 'trigLabels': ['left', 'right', 'foot', 'rest'], 'trials_N': len(labels)}
 
         all_subs_data.append(stackedDict)
     
     return all_subs_data
 
 
-def get_all_subs_EEG_dict(props):
+def get_all_subs_EEG_dict():
     all_sub_EEG_dict = {}
-    for sub in props['sub_list']:  
-        try:
+    
+    try:
+        for sub in props['sub_list']:  
             dictListStacked = extract_ieee_data(
                 sub, props['filterLim'],props['tmin'], props['tmax'], props['select_label'], props['data_dir'])
-        except Exception as e:
-            print(e)
-            print(f'Could\'nt load data files for sub')
-        # Remove noisy trials using amplitude threshold
-        clean_EEG = remove_noisy_trials(dictListStacked, props['amp_thresh'], props['min_trials'])
-
-        all_sub_EEG_dict[sub] = clean_EEG
+        
+            # Remove noisy trials using amplitude threshold
+            clean_EEG = remove_noisy_trials(dictListStacked, props['amplitude_th'], props['min_trials'])
+            all_sub_EEG_dict[sub] = clean_EEG
     
-    return all_sub_EEG_dict
+        return all_sub_EEG_dict
+        
+    except Exception as e:
+        print(e)
+        print(f'Could\'nt load data files for sub')
+        
+
 
 
 

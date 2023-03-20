@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
 
 import numpy as np
 import mne
@@ -10,9 +5,7 @@ import os
 import sys
 from scipy import io
 
-
-# In[ ]:
-
+from .properties import Shu_properties as props
 
 def extract_shu_data(sub, filterLim = [8,30], fs = 250, data_dir = 'data/shu_dataset/'):
 
@@ -36,15 +29,17 @@ def extract_shu_data(sub, filterLim = [8,30], fs = 250, data_dir = 'data/shu_dat
     return all_days_data
 
 
-def get_all_subs_EEG_dict(props):
+def get_all_subs_EEG_dict():
     all_sub_EEG_dict = {}
 
-    for sub in props['sub_list']:
-        try:
+    try:
+        for sub in props['sub_list']:
             all_sub_EEG_dict[sub] = extract_shu_data(
                 sub, props['filterLim'], props['fs'], props['data_dir'])
-        except Exception as e:
-            print(e)
-            print(f'Could\'nt load data files for sub')
+        
+        return all_sub_EEG_dict
     
-    return all_sub_EEG_dict
+    except Exception as e:
+        print(e)
+        print(f'Could\'nt load data files')
+    
