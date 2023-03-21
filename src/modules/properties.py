@@ -1,5 +1,5 @@
 IEEE_properties = {
-    'device' : 'cpu', # 'cuda'
+    'device' : 'cuda', # 'cpu
     
     # Data
     'tmin' : 0,

@@ -30,7 +30,7 @@ from scipy.stats import norm, wasserstein_distance
 from torchmetrics.classification import BinaryAccuracy
 
 from .utils import *
-from modules.properties import IEEE_properties as props
+from .properties import IEEE_properties as props
 
 import warnings
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning) 

@@ -1,10 +1,16 @@
-from .properties import hyper_params as params
 from .utils import *
+import pickle 
+import pytorch_lightning as pl
 
 import time
 import torch
 import random
 from pytorch_lightning.loggers import TensorBoardLogger
+
+## Need to be changed depending on data set! #######
+from .IEEE_models import convolution_AE            #
+from .properties import IEEE_properties as params  #
+####################################################
 
 def training_loop(train_days, dictListStacked, ae_learning_rt, convolution_filters, batch_sz, epoch_n, proccessor):
     
