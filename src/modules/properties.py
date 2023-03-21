@@ -34,12 +34,15 @@ Shu_properties = {
     'data_dir' : './data/shu_dataset/',
 
     # Model
-    'ae_lrn_rt' : 3e-4,
-    'n_epochs' : 250,
-    'btch_sz' : 8,
-    'cnvl_filters' : [8, 16, 32],
     'enoder_pad' : [1, 1, 1],
     'decoder_pad' : [1, 0, 1, 0, 1, 2],
     'latent_sz' : 1504
 
+}
+
+hyper_params = {
+    'ae_lrn_rt' : 3e-4,
+    'n_epochs' : 250,
+    'btch_sz' : 8,
+    'cnvl_filters' : [8, 16, 32],
 }
