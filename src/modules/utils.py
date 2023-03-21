@@ -43,10 +43,6 @@ def csp_score(signal, labels, cv_N = 5, classifier = False):
         return np.mean(scores), clf
 
 
-# In[ ]:
-
-
-
 def barplot_annotate_brackets(num1, num2, data, center, height, yerr=None, dh=.05, barh=.05, fs=None, maxasterix=None):
     """ 
     Annotate barplot with p-values.

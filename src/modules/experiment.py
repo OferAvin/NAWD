@@ -7,18 +7,18 @@ import torch
 import random
 from pytorch_lightning.loggers import TensorBoardLogger
 
-## Need to be changed depending on data set! #######
-from .IEEE_models import convolution_AE            #
-from .properties import IEEE_properties as params  #
-####################################################
+from .IEEE_models import convolution_AE         
+from .properties import hyper_params as params  
 
-def training_loop(train_days, dictListStacked, ae_learning_rt, convolution_filters, batch_sz, epoch_n, proccessor):
+
+def training_loop(train_days, dictListStacked):
     
     # check if enough train days exists
     if train_days[1] >= len(dictListStacked):
         raise Exception("Not enough training days")
 
     # device settings
+    proccessor = params['device']
     device = torch.device(proccessor)
     accelerator = proccessor if proccessor=='cpu' else 'gpu' 
     devices = 1 if proccessor=='cpu' else -1 
@@ -29,7 +29,7 @@ def training_loop(train_days, dictListStacked, ae_learning_rt, convolution_filte
     random.shuffle(dictListStacked)
     # Train Dataset
     signal_data = EEGDataSet_signal_by_day(dictListStacked, train_days)
-    signal_data_loader = DataLoader(dataset=signal_data, batch_size=batch_sz, shuffle=True, num_workers=0)
+    signal_data_loader = DataLoader(dataset=signal_data, batch_size=params['btch_sz'], shuffle=True, num_workers=0)
     x, y, days_y = signal_data.getAllItems()
     y = np.argmax(y, -1)
     days_labels_N = signal_data.days_labels_N
@@ -37,10 +37,10 @@ def training_loop(train_days, dictListStacked, ae_learning_rt, convolution_filte
 
     # Train model on training day
     metrics = ['classification_loss', 'reconstruction_loss']
-    day_zero_AE = convolution_AE(signal_data.n_channels, days_labels_N, task_labels_N, ae_learning_rt, filters_n=convolution_filters, mode='supervised')
+    day_zero_AE = convolution_AE(signal_data.n_channels, days_labels_N, task_labels_N, params['ae_lrn_rt'], filters_n=params['cnvl_filters'], mode='supervised')
     day_zero_AE.to(device)
 
-    trainer_2 = pl.Trainer(max_epochs=epoch_n, logger=logger, accelerator=accelerator , devices=devices)
+    trainer_2 = pl.Trainer(max_epochs=params['n_epochs'], logger=logger, accelerator=accelerator , devices=devices)
     trainer_2.fit(day_zero_AE, train_dataloaders=signal_data_loader)
     
     # CV On the training set (with and without ae)
@@ -70,7 +70,6 @@ def training_loop(train_days, dictListStacked, ae_learning_rt, convolution_filte
     return ws_train, ws_ae_train, ws_test, bs_test, bs_ae_test, day_zero_AE
 
 
-# #### Load the files - IEEE
 
 def run_all_subs_multi_iterations(subs_EEG_dict, train_days_range = [1,7], iterations_per_day = 250):
     
@@ -107,8 +106,7 @@ def run_all_subs_multi_iterations(subs_EEG_dict, train_days_range = [1,7], itera
                 print('training model...')
                 try:
                     ws_train, ws_ae_train, ws_test, bs_test, ae_test, day_zero_AE = \
-                    training_loop(curr_days_rng, subs_EEG_dict[sub], params['ae_lrn_rt'], \
-                                params['cnvl_filters'], params['btch_sz'], params['n_epochs'], params['device'])
+                    training_loop(curr_days_rng, subs_EEG_dict[sub])
                 except Exception as e:
                     print(f'Can\'t train a model for sub: {sub} with last training day: {last_train_day} because:')
                     print(e)
@@ -159,12 +157,13 @@ def run_all_subs_multi_iterations(subs_EEG_dict, train_days_range = [1,7], itera
     return f_task_path, f_origin_path
 
 
+
 def get_mean_result_from_file(f_name):
     # extract the data from {f_name} and calculates the mean for exch method over iterations and subjects
     # possible methods,
         # for task: ws_test, bs_test, ae_test, ws_train, ae_train
         # for origin day: orig, rec, res
-    #return
+    #return:
         # {mtd_by_rng_result_dict} mean result for each range by mthod
         # {all_train_ranges} list of all ranges
         # {methods} list of all methods

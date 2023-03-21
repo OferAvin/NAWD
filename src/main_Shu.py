@@ -1,6 +1,6 @@
 import modules.IEEE_models as models
 import modules.Shu_data_extractor as data_extractor
-import modules.expirament as exp
+import modules.experiment as exp
 
 if __name__ == "__main__": 
 

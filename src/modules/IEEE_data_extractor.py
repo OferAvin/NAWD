@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import numpy as np
 import mne
 import os
@@ -22,9 +19,6 @@ class LazyProperty:
         # print('value {}'.format(value))
         setattr(obj, self.method_name, value)
         return value
-
-
-# In[ ]:
 
 
 class data_4class(object):
@@ -334,7 +328,7 @@ def extract_ieee_data_by_sub(sub_list, filterLim, tmin=-1, tmax=5, select_label=
                 d.ch_names = d.ch_names[:26]
                 d.ch_types = d.ch_types[:26]
                 d.bandpass_filter(l_freq=filterLim[0], h_freq=filterLim[1])
-        #         d.data = mne.filter.filter_data(d.data.T , d.fs, filterLim[0], filterLim[1], verbose=0)
+        #       d.data = mne.filter.filter_data(d.data.T , d.fs, filterLim[0], filterLim[1], verbose=0)
                 d.data = d.data.T
 
                 trail_data, label = d.get_epoch_data(tmin, tmax, select_label)

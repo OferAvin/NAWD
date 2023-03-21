@@ -1,18 +1,10 @@
 import torch
-import scipy.io
-import mne
+
 import sklearn
-import os 
-import time
-import random
-import time
-import scipy.linalg
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import numpy as np
-import lightgbm as lgb
 
-from itertools import chain, product
 import pickle # to write results to file
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
@@ -47,7 +39,7 @@ else:
     print("PyTorch is not using the GPU.")
     
 
-# ### Datset and Model classes
+# Model class
 
 class convolution_AE(LightningModule):
     def __init__(self, input_channels, days_labels_N, task_labels_N, learning_rate=1e-3, filters_n = [32, 16, 4], mode = 'supervised'):
@@ -64,16 +56,16 @@ class convolution_AE(LightningModule):
 
         # Encoder
         self.encoder = nn.Sequential(
-        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=props['enoder_pad'][0]),
+        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=props['encoder_pad'][0]),
 #         nn.Dropout1d(p=0.2),
 #         nn.MaxPool1d(kernel_size=15, stride=3),
         nn.LeakyReLU(),
 #         nn.AvgPool1d(kernel_size=2, stride=2),
-        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=props['enoder_pad'][1]),
+        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=props['encoder_pad'][1]),
 #         nn.Dropout1d(p=0.2),
         nn.LeakyReLU(),
 #         nn.AvgPool1d(kernel_size=2, stride=2),
-        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=props['enoder_pad'][2]),
+        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=props['encoder_pad'][2]),
 #         nn.Dropout1d(p=0.2),
         nn.LeakyReLU()
         )
@@ -97,11 +89,11 @@ class convolution_AE(LightningModule):
         
         # Residuals Encoder
         self.res_encoder = nn.Sequential(
-        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=props['enoder_pad'][0]),
+        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=props['encoder_pad'][0]),
         nn.LeakyReLU(),
-        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=props['enoder_pad'][1]),
+        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=props['encoder_pad'][1]),
         nn.LeakyReLU(),
-        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=props['enoder_pad'][2]),
+        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=props['encoder_pad'][2]),
         nn.LeakyReLU()
         )
                 
