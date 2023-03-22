@@ -137,8 +137,8 @@ class EEGDataSet_signal_by_day(Dataset):
         self.n_channels = self.X.shape[1]
         self.y = y
         self.days_y = days_y
-        self.days_labels_N = days_range[1] - days_range[0]
-        self.task_labels_N = y.shape[1]
+        self.n_days_labels = days_range[1] - days_range[0]
+        self.n_task_labels = y.shape[1]
 
         
     def __getitem__(self, index):

@@ -11,7 +11,7 @@ from .IEEE_models import convolution_AE
 from .properties import hyper_params as params  
 
 
-def training_loop(train_days, dictListStacked):
+def training_loop(props, train_days, dictListStacked):
     
     # check if enough train days exists
     if train_days[1] >= len(dictListStacked):
@@ -21,7 +21,7 @@ def training_loop(train_days, dictListStacked):
     proccessor = params['device']
     device = torch.device(proccessor)
     accelerator = proccessor if proccessor=='cpu' else 'gpu' 
-    devices = 1 if proccessor=='cpu' else -1 
+    devices = 1 if proccessor =='cpu' else -1 
     
     # Logger
     logger = TensorBoardLogger('../tb_logs', name='EEG_Logger')
@@ -32,12 +32,13 @@ def training_loop(train_days, dictListStacked):
     signal_data_loader = DataLoader(dataset=signal_data, batch_size=params['btch_sz'], shuffle=True, num_workers=0)
     x, y, days_y = signal_data.getAllItems()
     y = np.argmax(y, -1)
-    days_labels_N = signal_data.days_labels_N
-    task_labels_N = signal_data.task_labels_N
+    n_days_labels = signal_data.n_days_labels
+    n_task_labels = signal_data.n_task_labels
 
     # Train model on training day
     metrics = ['classification_loss', 'reconstruction_loss']
-    day_zero_AE = convolution_AE(signal_data.n_channels, days_labels_N, task_labels_N, params['ae_lrn_rt'], filters_n=params['cnvl_filters'], mode='supervised')
+    day_zero_AE = convolution_AE(signal_data.n_channels, n_days_labels, n_task_labels, props, \
+                                 params['ae_lrn_rt'], filters_n=params['cnvl_filters'], mode='supervised')
     day_zero_AE.to(device)
 
     trainer_2 = pl.Trainer(max_epochs=params['n_epochs'], logger=logger, accelerator=accelerator , devices=devices)
@@ -71,7 +72,7 @@ def training_loop(train_days, dictListStacked):
 
 
 
-def run_all_subs_multi_iterations(subs_EEG_dict, train_days_range = [1,7], iterations_per_day = 250):
+def run_all_subs_multi_iterations(props, subs_EEG_dict, train_days_range = [1,7], iterations_per_day = 250):
     
 # This function runs multi iterations experiment over all subjects.
 # The experiment runs all ranges of traning days from 0-{train_days_range[0]} to 0-{train_days_range[1]}.
@@ -82,7 +83,8 @@ def run_all_subs_multi_iterations(subs_EEG_dict, train_days_range = [1,7], itera
 # The function returns the 2 file pathes
     
     ts = time.strftime("%Y%m%d-%H%M%S")
-    
+    print(f'START EXPERIMENT!!! {ts}\n')
+
     task_iter_dict = {} # keys: iterations, vals: dict of dicts of dicts of scores for each sub
     origin_iter_dict = {} 
     
@@ -98,15 +100,15 @@ def run_all_subs_multi_iterations(subs_EEG_dict, train_days_range = [1,7], itera
             rng_str = '-'.join(str(e) for e in curr_days_rng) # turn days range list to str to use as key name
                   
             for sub in list(subs_EEG_dict.keys()):
-                print(f'\niter: {itr}, last training day: {last_train_day}, sub: {sub}...')
+                print(f'\niter: {itr}, last training day: {last_train_day}, sub: {sub}...\n')
                 
                 task_per_sub_scores_dict = {} # keys: method(ws,bs,AE), vals: scores
                 origin_per_sub_scores_dict = {} # keys: signal(orig,rec,res), vals: scores
                   
-                print('training model...')
+                print('training model...\n')
                 try:
                     ws_train, ws_ae_train, ws_test, bs_test, ae_test, day_zero_AE = \
-                    training_loop(curr_days_rng, subs_EEG_dict[sub])
+                    training_loop(props, curr_days_rng, subs_EEG_dict[sub])
                 except Exception as e:
                     print(f'Can\'t train a model for sub: {sub} with last training day: {last_train_day} because:')
                     print(e)
@@ -129,7 +131,6 @@ def run_all_subs_multi_iterations(subs_EEG_dict, train_days_range = [1,7], itera
                 task_sub_dict[sub] = task_per_sub_scores_dict
                 origin_sub_dict[sub] = origin_per_sub_scores_dict
 
-            
             task_days_range_dict[rng_str] = task_sub_dict
             origin_days_range_dict[rng_str] = origin_sub_dict
                    

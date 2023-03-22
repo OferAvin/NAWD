@@ -22,7 +22,7 @@ Shu_properties = {
     # Data
     'filterLim' : [1,40], # In Hz
     'fs' : 250,
-    'sub_list' : ['{:03d}'.format(n) for n in range(1,26)],
+    'sub_list' : ['{:03d}'.format(n) for n in range(1,3)], # [001 - 026]
     'data_dir' : './data/shu_dataset/',
 
     # Model Adjustments
@@ -36,7 +36,7 @@ Shu_properties = {
 hyper_params = {
     'device' : 'cpu', # 'cuda'
     'ae_lrn_rt' : 3e-4,
-    'n_epochs' : 250,
+    'n_epochs' : 1,
     'btch_sz' : 8,
     'cnvl_filters' : [8, 16, 32],
 }

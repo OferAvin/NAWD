@@ -248,27 +248,8 @@ class data_4class(object):
         ica.exclude = eog_indices
         # orig_raw = self.raw_mne.copy()
         ica.apply(self.raw_mne)
-        # ica.plot_scores(eog_scores)
-        # ica.plot_properties(orig_raw, picks=eog_indices)  # plot diagnostics
-        # ica.plot_sources(orig_raw)  # plot ICs applied to raw data, with EOG matches highlighted
-        # eog_epoch = mne.preprocessing.create_eog_epochs(orig_raw, tmin=-1.5, tmax=1.5, thresh=200).average()
-        # eog_epoch.apply_baseline(baseline=(-1, -0.5))
-        # eog_epoch.plot_joint()
-        # ica.plot_sources(eog_epoch)
-        # orig_raw.plot(start=0, duration=5, n_channels=28, block=False, scalings=self.mne_scallings)
-        # self.raw_mne.plot(start=0, duration=5, n_channels=28, block=True, scalings=self.mne_scallings)
-
-
-# In[ ]:
-
 
 def extract_ieee_data(sub, filterLim, tmin=-1, tmax=5, select_label=None, data_dir = 'data/ieee_dataset/'):
-
-    # ch_names = ['F3', 'F1', 'Fz', 'F2', 'F4', 'FC5', 'FC3', 'FC1', 'FCz', 'FC2', 'FC4', 'FC6',
-    #             'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2',
-    #             'CP4', 'CP6', 'hEOG', 'vEOG', 'F5', 'AF3', 'AF4', 'P5', 'P3', 'P1',
-    #             'Pz', 'P2', 'P4', 'P6', 'PO3', 'POz', 'PO4', 'Oz', 'F6']  # 41ch EEG + 2ch EOG
-    # ch_types = ['eeg'] * 26 + ['eog'] * 2 + ['eeg'] * 15
 
     data_dir = os.path.abspath(data_dir + sub)
     all_days_dirs = os.listdir(data_dir)
@@ -303,9 +284,6 @@ def extract_ieee_data(sub, filterLim, tmin=-1, tmax=5, select_label=None, data_d
         all_days_data.append(stackedDict)
     
     return all_days_data
-
-
-# In[ ]:
 
 
 def extract_ieee_data_by_sub(sub_list, filterLim, tmin=-1, tmax=5, select_label=None, data_dir = 'data/ieee_dataset/'):
@@ -365,8 +343,3 @@ def get_all_subs_EEG_dict():
     except Exception as e:
         print(e)
         print(f'Could\'nt load data files for sub')
-        
-
-
-
-

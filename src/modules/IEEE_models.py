@@ -1,11 +1,7 @@
 import torch
 
 import sklearn
-import pytorch_lightning as pl
-import matplotlib.pyplot as plt
 import numpy as np
-
-import pickle # to write results to file
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import cross_val_score
@@ -22,7 +18,6 @@ from scipy.stats import norm, wasserstein_distance
 from torchmetrics.classification import BinaryAccuracy
 
 from .utils import *
-from .properties import IEEE_properties as props
 
 import warnings
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning) 
@@ -42,7 +37,7 @@ else:
 # Model class
 
 class convolution_AE(LightningModule):
-    def __init__(self, input_channels, days_labels_N, task_labels_N, learning_rate=1e-3, filters_n = [32, 16, 4], mode = 'supervised'):
+    def __init__(self, input_channels, days_labels_N, task_labels_N, adjustments, learning_rate=1e-3, filters_n = [32, 16, 4], mode = 'supervised'):
         super().__init__()
         self.input_channels = input_channels
         self.filters_n = filters_n
@@ -56,16 +51,16 @@ class convolution_AE(LightningModule):
 
         # Encoder
         self.encoder = nn.Sequential(
-        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=props['encoder_pad'][0]),
+        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=adjustments['encoder_pad'][0]),
 #         nn.Dropout1d(p=0.2),
 #         nn.MaxPool1d(kernel_size=15, stride=3),
         nn.LeakyReLU(),
 #         nn.AvgPool1d(kernel_size=2, stride=2),
-        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=props['encoder_pad'][1]),
+        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=adjustments['encoder_pad'][1]),
 #         nn.Dropout1d(p=0.2),
         nn.LeakyReLU(),
 #         nn.AvgPool1d(kernel_size=2, stride=2),
-        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=props['encoder_pad'][2]),
+        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=adjustments['encoder_pad'][2]),
 #         nn.Dropout1d(p=0.2),
         nn.LeakyReLU()
         )
@@ -74,40 +69,40 @@ class convolution_AE(LightningModule):
         self.decoder = nn.Sequential(
         # IMPORTENT - on the IEEE dataset - the output padding needs to be 1 in the row below -on CHIST-ERA its 1
         nn.ConvTranspose1d(self.l3_filters, self.l2_filters, kernel_size=5, stride=2,\
-                            padding=props['decoder_pad'][0], output_padding=props['decoder_pad'][1]),
+                            padding=adjustments['decoder_pad'][0], output_padding=adjustments['decoder_pad'][1]),
 #         nn.Dropout1d(p=0.33),
         nn.LeakyReLU(),
 #         nn.Upsample(scale_factor=2, mode='linear'),
         nn.ConvTranspose1d(self.l2_filters, self.l1_filters, kernel_size=10, stride=2, \
-                            padding=props['decoder_pad'][2], output_padding=props['decoder_pad'][3]),
+                            padding=adjustments['decoder_pad'][2], output_padding=adjustments['decoder_pad'][3]),
 #         nn.Dropout1d(p=0.33),
         nn.LeakyReLU(),
 #         nn.Upsample(scale_factor=2, mode='linear'),
         nn.ConvTranspose1d(self.l1_filters, self.input_channels, kernel_size=25, stride=5, \
-                            padding=props['decoder_pad'][4], output_padding=props['decoder_pad'][5]),
+                            padding=adjustments['decoder_pad'][4], output_padding=adjustments['decoder_pad'][5]),
         )
         
         # Residuals Encoder
         self.res_encoder = nn.Sequential(
-        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=props['encoder_pad'][0]),
+        nn.Conv1d(self.input_channels, self.l1_filters, kernel_size=25, stride=5, padding=adjustments['encoder_pad'][0]),
         nn.LeakyReLU(),
-        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=props['encoder_pad'][1]),
+        nn.Conv1d(self.l1_filters, self.l2_filters, kernel_size=10, stride=2, padding=adjustments['encoder_pad'][1]),
         nn.LeakyReLU(),
-        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=props['encoder_pad'][2]),
+        nn.Conv1d(self.l2_filters, self.l3_filters, kernel_size=5, stride=2, padding=adjustments['encoder_pad'][2]),
         nn.LeakyReLU()
         )
                 
         # Classifier Days
         self.classiffier_days = nn.Sequential(
         nn.Flatten(),
-        nn.Linear(props['latent_sz'], days_labels_N),
+        nn.Linear(adjustments['latent_sz'], days_labels_N),
         nn.Dropout(0.5),
         )
         
         # Classifier Task
         self.classiffier_task = nn.Sequential(
         nn.Flatten(),
-        nn.Linear(props['latent_sz'], task_labels_N),
+        nn.Linear(adjustments['latent_sz'], task_labels_N),
         nn.Dropout(0.5),
 
         )
