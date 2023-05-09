@@ -1,4 +1,4 @@
-import modules.IEEE_models as models
+import modules.models as models
 import modules.Shu_data_extractor as data_extractor
 import modules.experiment as exp
 from modules.properties import Shu_properties as props

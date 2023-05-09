@@ -5,10 +5,6 @@ import torch
 import sklearn
 import lightgbm as lgb
 import matplotlib.pyplot as plt
-import pickle
-import time
-
-from scipy.io import savemat
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline

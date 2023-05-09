@@ -7,8 +7,9 @@ import torch
 import random
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from .IEEE_models import convolution_AE         
+from .models import convolution_AE         
 from .properties import hyper_params as params  
+
 
 
 def training_loop(props, train_days, dictListStacked):
@@ -157,7 +158,27 @@ def run_all_subs_multi_iterations(props, subs_EEG_dict, train_days_range = [1,7]
         print(f'stopped after {itr+1} iterations')
     return f_task_path, f_origin_path
 
-
+def remove_subs_by_accuracy_and_method(results_dict, min_acc = 0.6, method = 'ws_train', range = '0-1'):
+    # Remove subs whith accuracy smaller than min_acc for method and range
+    all_iters = list(results_dict.keys())
+    all_train_ranges = list(results_dict[all_iters[0]].keys())
+    subs = list(results_dict[all_iters[0]][range].keys())
+    
+    # Find bed subs
+    subs_to_remove = [] #only for mehod and range
+    for sub in subs:
+        accuracies = [results_dict[itr][range][sub][method] for itr in all_iters]
+        sub_mean_acc = np.mean(accuracies)
+        if sub_mean_acc < min_acc:
+            subs_to_remove.append(sub)
+            # Remove subs from result dict
+            for itr in all_iters:
+                for rng in all_train_ranges:
+                    results_dict[itr][rng].pop(sub, None)       
+            
+    n_sub_left = len(subs) - len(subs_to_remove)
+    subs = [s for s in subs if s not in subs_to_remove]
+    return subs, subs_to_remove 
 
 def get_mean_result_from_file(f_name):
     # extract the data from {f_name} and calculates the mean for exch method over iterations and subjects
@@ -172,10 +193,11 @@ def get_mean_result_from_file(f_name):
     with open(f_name, 'rb') as f:
         results_dict = pickle.load(f)
     
+    subs, bed_subs = remove_subs_by_accuracy_and_method(results_dict, min_acc=0.6)
+
     all_iters = list(results_dict.keys())
     all_train_ranges = list(results_dict[all_iters[0]].keys())
-    sub_list = list(results_dict[all_iters[0]][all_train_ranges[0]].keys())
-    methods = list(results_dict[all_iters[0]][all_train_ranges[0]][sub_list[0]].keys())
+    methods = list(results_dict[all_iters[0]][all_train_ranges[0]][subs[0]].keys())
 
     all_rng_result_dict = {}
     
@@ -184,10 +206,54 @@ def get_mean_result_from_file(f_name):
         range_subs = list(results_dict[0][rng].keys()) # range might not contains all subs
 
         for mtd in methods:
-            # collect all results for rng and mtd (from all iters and subs)
-            result_per_rng_and_mtd = [results_dict[itr][rng][sub][mtd] for itr in all_iters for sub in range_subs]
-            mtd_result_dict[mtd] = np.mean(result_per_rng_and_mtd)
+            result_per_iter = np.empty([len(all_iters), len(range_subs)])
+            for i, itr in enumerate(all_iters):
+                # collect results from all subs 
+                result_per_iter[i, :] = [results_dict[itr][rng][sub][mtd] for sub in range_subs]
+
+            mean_over_subs = np.mean(result_per_iter, axis=1) # we want the std over the iterations
+            mtd_result_dict[mtd] = [np.mean(mean_over_subs),np.std(mean_over_subs)]
         
         all_rng_result_dict[rng] = mtd_result_dict
     return all_rng_result_dict, all_train_ranges, methods, len(all_iters)
 
+
+def get_results_for_plots(res_dict, ranges, methods):
+    # This function translate the result dict to np 2d array 
+    # range X method for easy plotting
+
+    mean_results_mat = np.empty((len(ranges),len(methods)))
+    std_results_mat = np.empty((len(ranges),len(methods)))
+
+    for i, mtd in enumerate(methods):
+        mean_res_per_mtd = [res_dict[rng][mtd][0] for rng in ranges] 
+        std_res_per_mtd = [res_dict[rng][mtd][1] for rng in ranges] 
+        mean_results_mat[:, i] = mean_res_per_mtd
+        std_results_mat[:, i] = std_res_per_mtd
+    
+    return mean_results_mat, std_results_mat
+
+def plot_scores_mean_and_std(x, Y_mean, Y_std, colors, legend):
+    if 'ae_train' in legend:
+        Y_mean = np.delete(Y_mean, [1,2], axis=1)
+        Y_std = np.delete(Y_std, [1,2], axis=1)
+        legend = np.delete(np.asanyarray(legend), [1,2])
+
+    fig, ax = plt.subplots()
+    for i in range(Y_mean.shape[1]):
+        ax.plot(x, Y_mean[:,i],  
+                        label = legend[i],       
+                        marker = ',',           
+                        linestyle = '-',   
+                        color = colors[i],      
+                        linewidth = '3.5'      
+                            ) 
+        ax.fill_between(x, Y_mean[:,i] - Y_std[:,i], Y_mean[:,i] + Y_std[:,i], color=colors[i], alpha=0.2)
+ 
+    ax.legend()
+    # plt.legend(handles=[l1, l2, l3])
+# Add labels and title to the plot
+    plt.xlabel('Range of training data')
+    plt.ylabel('Accuracy')
+    plt.title('Session clasification')
+    plt.show()

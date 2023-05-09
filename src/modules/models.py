@@ -224,11 +224,3 @@ class convolution_AE(LightningModule):
     def configure_optimizers(self):
         # Optimizer
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-    
-
-
-
-
-
-
-
