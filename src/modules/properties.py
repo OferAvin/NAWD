@@ -40,3 +40,11 @@ hyper_params = {
     'btch_sz' : 8,
     'cnvl_filters' : [8, 16, 32],
 }
+
+result_params = {
+    'result_dir' : 'C:/Users/ofera/studies/NAWD/results',
+
+    # Plotting
+    'colors' :['#008080', '#FFA500', '#006400', '#800080', '#800000'],
+    'alpha' : 0.25
+}

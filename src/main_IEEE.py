@@ -20,18 +20,11 @@ if __name__ == "__main__":
 
 
     shu_res_task_super = rp(f_name='task_iters_timestr_20230309-154106.pickle')
-    shu_res_task_super.filter_sub()
+    shu_res_task_super.filter_sub(min_acc=0.55)
+    shu_res_task_super.process_result()
+    shu_res_task_super.plot_result(title="Nice Shot")
 
 
 
-    # origin_result, rng_list, mtd_list, n_itr = exp.get_mean_result_from_file('C:/Users/ofera/studies/NAWD/results/task_iters_timestr_20230330-162826.pickle')
-    # mean_mat, std_mat = exp.get_results_for_plots(origin_result, rng_list, mtd_list)
-    # # mean_mat[0,2] = 0.76
-    # colors = ['#27496d', '#8c1d40', '#0f5e3e']
-    # colors = ['#556b2f', '#8b0000', '#483d8b']
-    # colors = ['#008080', '#800080', '#800000']
-    # colors = ['#008080', '#800080', '#800000', '#FFA500', '#008000']
-    # exp.plot_scores_mean_and_std(rng_list, mean_mat, std_mat, colors, mtd_list)
-    # print(mtd_list)
-    # print(mean_mat)
+
     
