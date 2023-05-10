@@ -1,6 +1,6 @@
 import modules.models as models
 import modules.Shu_data_extractor as data_extractor
-import modules.experiment as exp
+import modules.Experiment as exp
 from modules.properties import Shu_properties as props
 
 if __name__ == "__main__": 
