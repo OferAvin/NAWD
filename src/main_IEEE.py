@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # task_result, rng_list, task_mtd_list, n_itr = exp.get_mean_result_from_file(f_task_path)
 
-    super_shu = exp("super_ieee", shu_data_extractor, props, [1,2], 2)
+    # super_shu = exp("super_ieee", shu_data_extractor, props, [1,2], 2)
     super_ieee = exp("super_ieee", ieee_data_extractor, props, [1,2], 2)
     super_ieee.extract_data()
     print(super_ieee.get_subs)

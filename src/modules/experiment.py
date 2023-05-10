@@ -60,6 +60,7 @@ class Experiment():
                 os.remove(last_iteration_task_file)   
                 os.remove(last_iteration_origin_file) 
 
+
     def training_loop(self, train_days, sub):
         
         one_seb_EEG_data = self.EEG_data[sub]
