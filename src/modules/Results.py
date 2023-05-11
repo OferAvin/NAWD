@@ -20,8 +20,12 @@ class Results_Processor:
         self.remove_sub_by_method = None
         self.remove_sub_by_range = None
 
-        with open(self.f_path, 'rb') as f:
-            self.results =  pickle.load(f)
+        try:
+            with open(self.f_path, 'rb') as f:
+                self.results =  pickle.load(f)
+        except:
+            print("Couldn't load result file!!!")
+            exit()        
         self.all_iters = list(self.results.keys())
         self.train_ranges = list(self.results[self.all_iters[0]].keys())
         self.all_subs = list(self.results[self.all_iters[0]][self.train_ranges[0]].keys())
@@ -113,17 +117,19 @@ class Results_Processor:
         the mean results then assigned to `self.mean_results` dict
         '''
 
+        results = self.filtered_result if self.filtered_result else self.results
+
         mean_per_range_result = {}
         
         for rng in self.train_ranges:
             mean_per_method_result = {}
-            range_subs = list(self.filtered_result[0][rng].keys()) # range might not contains all subs
+            range_subs = list(results[0][rng].keys()) # range might not contains all subs
 
             for mtd in self.methods:
                 result_per_iter = np.empty([self.n_iters, len(range_subs)])
                 for i, itr in enumerate(self.all_iters):
                     # collect results from all subs 
-                    result_per_iter[i, :] = [self.results[itr][rng][sub][mtd] for sub in range_subs]
+                    result_per_iter[i, :] = [results[itr][rng][sub][mtd] for sub in range_subs]
 
                 mean_over_subs = np.mean(result_per_iter, axis=1) # we want the standard error over the iterations
                 mean_per_method_result[mtd] = [np.mean(mean_over_subs),np.std(mean_over_subs)/np.sqrt(len(mean_over_subs))]
@@ -138,6 +144,7 @@ class Results_Processor:
 
         of shape `n_range` X `n_method` for easy plotting
         '''
+
         mean_results_mat = np.empty((self.n_ranges,self.n_methods))
         std_results_mat = np.empty((self.n_ranges,self.n_methods))
 
@@ -150,10 +157,12 @@ class Results_Processor:
         self.mean_matrix = mean_results_mat
         self.std_matrix = std_results_mat
 
+
     def process_result(self):
         self._calculate_mean_result_over_iters_and_subs()
         self._prepare_results_for_plots()
         self.is_processed = True
+
 
     def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title):
         fig, ax = plt.subplots()
@@ -174,6 +183,7 @@ class Results_Processor:
         plt.suptitle(title)
         plt.text(0.5, 0.92, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=plt.gcf().transFigure)
         plt.show()
+        
     
     def plot_result(self, dont_plot = ['ae_train','ws_test'], title = ''):
 
