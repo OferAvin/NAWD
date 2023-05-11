@@ -42,8 +42,8 @@ hyper_params = {
 }
 
 result_params = {
-    # 'result_dir' : 'C:/Users/ofera/studies/NAWD/results',
-    'result_dir' : './results',
+    'result_dir' : 'C:/Users/ofera/studies/NAWD/results',
+    # 'result_dir' : './results',
 
     # Plotting
     'colors' :['#008080', '#FFA500', '#006400', '#800080', '#800000'],

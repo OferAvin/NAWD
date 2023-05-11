@@ -18,18 +18,21 @@ class NoEEGDataException(Exception):
 
 class Experiment():
 
-    def __init__(self, exp_name: str, data_extractor, model_adjustments, train_days_range, n_iterations):
+    def __init__(self, exp_name: str, data_extractor, model_adjustments, train_days_range, n_iterations, mode = 'supervised'):
 
         self.experiment_name = exp_name
         self.data_extractor = data_extractor
         self.EEG_data = None
         self.subs = None
-        self.model_adjustments = model_adjustments
         self.train_days_range = train_days_range
         self.n_iterations = n_iterations
         self.task_file = None
         self.origin_file = None
 
+        self.mode = mode
+        self.model_adjustments = model_adjustments
+
+        self.result_dir = result_params['result_dir']
 
     def extract_data(self):
         self.EEG_data = self.data_extractor.get_all_subs_EEG_dict()
@@ -42,8 +45,8 @@ class Experiment():
         last_iteration_task_file = self.task_file
         last_iteration_origin_file = self.origin_file
 
-        self.task_file = f'./results/task_{itr}_{self.experiment_name}.pickle'
-        self.origin_file = f'./results/origin_{itr}_{self.experiment_name}.pickle'
+        self.task_file = f'{self.result_dir}/task_{itr}_{self.experiment_name}.pickle'
+        self.origin_file = f'{self.result_dir}/origin_{itr}_{self.experiment_name}.pickle'
         
         try:
             f_task = open(self.task_file, 'wb')
@@ -90,7 +93,7 @@ class Experiment():
         # Train model on training day
         metrics = ['classification_loss', 'reconstruction_loss']
         day_zero_AE = convolution_AE(signal_data.n_channels, n_days_labels, n_task_labels, self.model_adjustments, \
-                                    params['ae_lrn_rt'], filters_n=params['cnvl_filters'], mode='supervised')
+                                    params['ae_lrn_rt'], filters_n=params['cnvl_filters'], mode=self.mode)
         day_zero_AE.to(device)
 
         trainer_2 = pl.Trainer(max_epochs=params['n_epochs'], logger=logger, accelerator=accelerator , devices=devices)
@@ -155,6 +158,7 @@ class Experiment():
                 rng_str = '-'.join(str(e) for e in curr_days_rng) # turn days range list to str to use as key name
                     
                 for sub in list(self.subs):
+                    print(f'Running {self.experiment_name}')
                     print(f'\niter: {itr}, last training day: {last_train_day}, sub: {sub}...\n')
                     
                     task_per_sub_scores_dict = {} # keys: method(ws,bs,AE), vals: scores

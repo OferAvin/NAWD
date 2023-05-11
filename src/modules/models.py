@@ -123,22 +123,22 @@ class convolution_AE(LightningModule):
         x = self.encoder(x)
         return x
     
-    def on_train_epoch_end(self):
-        if self.current_epoch > 200:
-            self.unfreeze_decoder()
-            self.unfreeze_encoder()
-            self.mode = 'all'
+    # def on_train_epoch_end(self):
+    #     if self.current_epoch >= 0:
+    #         self.unfreeze_decoder()
+    #         self.unfreeze_encoder()
+    #         self.mode = 'all'
     
-        if self.current_epoch % 20 == 0:
-            self.switcher = not self.switcher
-            if self.switcher == True:
-                self.freeze_decoder()
-                self.unfreeze_encoder()
-                self.mode = 'task'
-            elif self.switcher == False:
-                self.freeze_encoder()
-                self.unfreeze_decoder()
-                self.mode = 'reconstruction'
+        # if self.current_epoch % 20 == 0:
+        #     self.switcher = not self.switcher
+        #     if self.switcher == True:
+        #         self.freeze_decoder()
+        #         self.unfreeze_encoder()
+        #         self.mode = 'task'
+        #     elif self.switcher == False:
+        #         self.freeze_encoder()
+        #         self.unfreeze_decoder()
+        #         self.mode = 'reconstruction'
         
     def training_step(self, batch, batch_idx):
         # Extract batch
@@ -190,9 +190,9 @@ class convolution_AE(LightningModule):
 
         if self.mode == 'task':
             return days_loss + task_loss
-        elif self.mode == 'reconstruction':
+        elif self.mode == 'unsupervised':
             return reconstruction_loss
-        elif self.mode == 'all':
+        elif self.mode == 'supervised':
             return reconstruction_loss + days_loss + task_loss
    
     def get_lr(optimizer):

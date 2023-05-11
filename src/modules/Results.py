@@ -3,6 +3,8 @@ import numpy as np
 import pickle
 from copy import deepcopy
 from modules.properties import result_params
+from os import path
+from sys import exit
 
 # for task: ws_test, bs_test, ae_test, ws_train, ae_train
             # for origin day: orig, rec, res
@@ -132,7 +134,7 @@ class Results_Processor:
                     result_per_iter[i, :] = [results[itr][rng][sub][mtd] for sub in range_subs]
 
                 mean_over_subs = np.mean(result_per_iter, axis=1) # we want the standard error over the iterations
-                mean_per_method_result[mtd] = [np.mean(mean_over_subs),np.std(mean_over_subs)/np.sqrt(len(mean_over_subs))]
+                mean_per_method_result[mtd] = [np.mean(mean_over_subs),np.std(mean_over_subs)/np.sqrt(self.n_iters)]
             
             mean_per_range_result[rng] = mean_per_method_result
         self.mean_resulrs = mean_per_range_result
