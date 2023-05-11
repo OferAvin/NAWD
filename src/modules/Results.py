@@ -70,13 +70,22 @@ class Results_Processor:
                   Minimum accuracy: {self.min_acc:4d}\n\
                   Method: {self.remove_sub_by_method:4d}\n\
                   Range: {self.remove_sub_by_range:4d}' )
-                
+    
+    def filter_out_sub_from_list(self, subs_to_remove = []):
 
-    def filter_sub(self, min_acc = 0.6, method = 'ws_train', range = '0-1'):
+        self.filtered_subs = [s for s in self.all_subs if s not in subs_to_remove]
+        self.removed_subs = subs_to_remove
+        self.n_filtered_subs = len(self.filtered_subs)  
+
+
+    def filter_sub_by_acc(self, min_acc = 0.6, method = 'ws_train', range = '0-1'):
         '''
          This method filters out subs whith accuracy smaller than `min_acc`
 
-         the accuracy calculated as the mean over `method` and `range` for each sub
+         the accuracy calculated as the mean over `method` and `range` for each sub 
+
+         in `subs`. in case `subs` is empty than the filter wil go over `self.all_subs`
+
         '''
 
         # Find bad subs
@@ -94,10 +103,7 @@ class Results_Processor:
                         self.filtered_result[itr][rng].pop(sub, None) 
 
         n_removed = len(subs_to_remove)
-
-        self.filtered_subs = [s for s in self.all_subs if s not in subs_to_remove]
-        self.removed_subs = subs_to_remove
-        self.n_filtered_subs = len(self.filtered_subs)
+        self.filter_out_sub_from_list(subs_to_remove)
         self.min_acc = min_acc
         self.remove_sub_by_method = method
         self.remove_sub_by_range = range

@@ -1,0 +1,16 @@
+IEEE Runs:
+20230309-154106 - supervised ('all')
+20230314-163428 - unknown
+20230314-164800 - unsupervised ('reconstruction')
+20230316-122113 - supervised ('reconstruction +  task + all at the end) 250 epochs
+20230321-151503 - supervised ('all' * 100 on task and day loss)
+
+20230507-141104 - supervised ('all') 4 classes
+
+Shu Runs:
+20230322-123119 - supervised (all) 1000 epochs
+20230325-092428 - supervised (all) 100 epochs
+20230328-121613 - supervised (('reconstruction +  task + all at the end) 250 epochs
+20230330-162826 - supervised (all) 250 epochs
+20230402-123741 - unsupervised 250 epochs
+
