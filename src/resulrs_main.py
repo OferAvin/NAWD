@@ -9,15 +9,15 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 
-IEEE_super = rp(f_name='task_iters_timestr_20230309-154106.pickle')
-IEEE_super.filter_sub_by_acc(min_acc=0.6)
-removed_subs = IEEE_super.removed_subs
-print(IEEE_super.n_iters)
-IEEE_super.process_result()
-# IEEE_super.plot_result(title="IEEE dataset - supervised")
+IEEE_unsuper = rp(f_name='task_iters_timestr_20230314-164800.pickle')
+IEEE_unsuper.filter_sub_by_acc(min_acc=0.6)
+removed_subs = IEEE_unsuper.removed_subs
+print(IEEE_unsuper.n_iters)
+IEEE_unsuper.process_result()
+# # IEEE_unsuper.plot_result(title="IEEE dataset - unsupervised")
 
-IEEE_super = rp(f_name='origin_iters_timestr_20230309-154106.pickle')
-IEEE_super.filter_out_sub_from_list(removed_subs)
-print(IEEE_super.n_iters)
-IEEE_super.process_result()
-IEEE_super.plot_result(title="IEEE dataset - supervised (session clasification)")
+IEEE_unsuper = rp(f_name='origin_iters_timestr_20230314-164800.pickle')
+IEEE_unsuper.filter_out_subs_from_results(removed_subs)
+print(IEEE_unsuper.n_iters)
+IEEE_unsuper.process_result()
+IEEE_unsuper.plot_result(title="IEEE dataset - unsupervised (session clasification)")

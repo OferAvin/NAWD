@@ -71,8 +71,20 @@ class Results_Processor:
                   Method: {self.remove_sub_by_method:4d}\n\
                   Range: {self.remove_sub_by_range:4d}' )
     
-    def filter_out_sub_from_list(self, subs_to_remove = []):
+    def filter_out_subs_from_results(self, subs_to_remove = []):
+        '''
+        This function removes `subs to remove` from the results dict 
+        by iterating on `all_iters` and `train_ranges` in the result dict.
+        The function asigns the filtered results to `self.filterd_result`
+        '''
+        # Remove all subs to remove from the result dict
+        filtered_result = deepcopy(self.results)
+        for sub in subs_to_remove:
+            for itr in self.all_iters:
+                for rng in self.train_ranges:
+                    filtered_result[itr][rng].pop(sub, None)
 
+        self.filtered_result = filtered_result
         self.filtered_subs = [s for s in self.all_subs if s not in subs_to_remove]
         self.removed_subs = subs_to_remove
         self.n_filtered_subs = len(self.filtered_subs)  
@@ -97,13 +109,8 @@ class Results_Processor:
             if sub_mean_acc < min_acc:
                 subs_to_remove.append(sub)
                 
-                # Remove bad subs from result dict
-                for itr in self.all_iters:
-                    for rng in self.train_ranges:
-                        self.filtered_result[itr][rng].pop(sub, None) 
-
+        self.filter_out_subs_from_results(subs_to_remove)
         n_removed = len(subs_to_remove)
-        self.filter_out_sub_from_list(subs_to_remove)
         self.min_acc = min_acc
         self.remove_sub_by_method = method
         self.remove_sub_by_range = range
