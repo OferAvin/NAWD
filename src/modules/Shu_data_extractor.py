@@ -29,7 +29,7 @@ def extract_shu_data(sub, filterLim = [8,30], fs = 250, data_dir = 'data/shu_dat
     return all_days_data
 
 
-def get_all_subs_EEG_dict():
+def get_EEG_dict():
     all_sub_EEG_dict = {}
 
     try:

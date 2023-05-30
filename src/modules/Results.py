@@ -101,7 +101,7 @@ class Results_Processor:
         '''
 
         # Find bad subs
-        self.filtered_result = deepcopy(self.results)
+        # self.filtered_result = deepcopy(self.results)
         subs_to_remove = [] #only for mehod and range
         for sub in self.all_subs:
             accuracies = [self.results[itr][range][sub][method] for itr in self.all_iters]
@@ -121,6 +121,7 @@ class Results_Processor:
             Number of subjects with accuracy less than {min_acc} (removed): {n_removed:>4}'
         )
 
+        return subs_to_remove
     
 
     def _calculate_mean_result_over_iters_and_subs(self):

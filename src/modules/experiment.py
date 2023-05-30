@@ -18,7 +18,7 @@ class NoEEGDataException(Exception):
 
 class Experiment():
 
-    def __init__(self, exp_name: str, data_extractor, model_adjustments, train_days_range, n_iterations, mode = 'supervised'):
+    def __init__(self, exp_name: str, data_extractor, model_adjustments, train_days_range: list, n_iterations: int, mode = 'supervised'):
 
         self.experiment_name = exp_name
         self.data_extractor = data_extractor
@@ -35,7 +35,7 @@ class Experiment():
         self.result_dir = result_params['result_dir']
 
     def extract_data(self):
-        self.EEG_data = self.data_extractor.get_all_subs_EEG_dict()
+        self.EEG_data = self.data_extractor.get_EEG_dict()
         self.subs = self.EEG_data.keys()
 
     def get_subs(self):

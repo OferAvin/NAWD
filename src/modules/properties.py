@@ -34,17 +34,18 @@ Shu_properties = {
 
 sub201_properties = {
     # Data
-    'data_dir' : './data/Chist_Era_dataset/sub201/',
+    'data_dir' : './data/Chist_Era_dataset/',
+    'sub' : '201',
+    'eyes_state' : 'CC',
+    'block' : [1],
     'trial_len' : 6,
     'filter_lim' : [1,40], # In Hz
     'elec_idxs' : range(11),
-    'sub_list' : ['{:03d}'.format(n) for n in range(1,3)], # [001 - 026]
 
     # Model Adjustments
     'encoder_pad' : [1, 1, 1],
-    'decoder_pad' : [1, 0, 1, 0, 1, 2],
-    'latent_sz' : 1504
-
+    'decoder_pad' : [1, 1, 1, 0, 1, 0],
+    'latent_sz' : 1120
 }
 
 hyper_params = {

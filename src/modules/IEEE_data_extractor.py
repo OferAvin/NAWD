@@ -325,7 +325,7 @@ def extract_ieee_data_by_sub(sub_list, filterLim, tmin=-1, tmax=5, select_label=
     return all_subs_data
 
 
-def get_all_subs_EEG_dict():
+def get_EEG_dict():
     all_sub_EEG_dict = {}
     
     try:
