@@ -5,6 +5,7 @@ from copy import deepcopy
 from modules.properties import result_params
 from os import path
 from sys import exit
+import typing
 
 # for task: ws_test, bs_test, ae_test, ws_train, ae_train
             # for origin day: orig, rec, res
@@ -12,9 +13,9 @@ from sys import exit
 class ResultsNotProcessedException(Exception):
     pass
 
-class Results_Processor:
+class ResultsProcessor:
     
-    def __init__(self, f_name):
+    def __init__(self, f_name, ignore_methods = ['ae_train','ws_test']):
         self.f_name = f_name
         self.results_dir = result_params['result_dir']
         self.f_path = self.results_dir + '/' + self.f_name
@@ -32,6 +33,8 @@ class Results_Processor:
         self.train_ranges = list(self.results[self.all_iters[0]].keys())
         self.all_subs = list(self.results[self.all_iters[0]][self.train_ranges[0]].keys())
         self.methods = list(self.results[self.all_iters[0]][self.train_ranges[0]][self.all_subs[0]].keys())
+        self.ignore_methods = ignore_methods
+        self.methods = [mtd for mtd in self.methods if mtd not in self.ignore_methods]
         self.n_iters = len(self.all_iters)
         self.n_ranges = len(self.train_ranges)
         self.n_total_subs = len(self.all_subs)
@@ -45,9 +48,9 @@ class Results_Processor:
 
         # Following fields will be set when applying process_result()
         # mean = mean result per training range
-        self.mean_resulrs = None
-        self.mean_matrix = None
-        self.std_matrix = None 
+        self.mean_results = None
+        self.mean_matrix : np.ndarray = None
+        self.std_matrix : np.ndarray = None 
         self.is_processed = False
 
         self.colors = result_params['colors']
@@ -151,7 +154,7 @@ class Results_Processor:
                 mean_per_method_result[mtd] = [np.mean(mean_over_subs),np.std(mean_over_subs)/np.sqrt(self.n_iters)]
             
             mean_per_range_result[rng] = mean_per_method_result
-        self.mean_resulrs = mean_per_range_result
+        self.mean_results = mean_per_range_result
 
 
     def _prepare_results_for_plots(self):
@@ -165,13 +168,13 @@ class Results_Processor:
         std_results_mat = np.empty((self.n_ranges,self.n_methods))
 
         for i, mtd in enumerate(self.methods):
-            mean_res_per_mtd = [self.mean_resulrs[rng][mtd][0] for rng in self.train_ranges] 
-            std_res_per_mtd = [self.mean_resulrs[rng][mtd][1] for rng in self.train_ranges] 
+            mean_res_per_mtd = [self.mean_results[rng][mtd][0] for rng in self.train_ranges] 
+            std_res_per_mtd = [self.mean_results[rng][mtd][1] for rng in self.train_ranges] 
             mean_results_mat[:, i] = mean_res_per_mtd
             std_results_mat[:, i] = std_res_per_mtd
         
-        self.mean_matrix = mean_results_mat
-        self.std_matrix = std_results_mat
+        self.mean_matrix = np.asarray(mean_results_mat)
+        self.std_matrix = np.asarray(std_results_mat)
 
 
     def process_result(self):
@@ -180,7 +183,7 @@ class Results_Processor:
         self.is_processed = True
 
 
-    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title):
+    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable, ylabel):
         fig, ax = plt.subplots()
         for i in range(Y_mean.shape[1]):
             ax.plot(x, Y_mean[:,i],  
@@ -194,14 +197,14 @@ class Results_Processor:
     
         ax.legend()
         # Add labels and title to the plot
-        plt.xlabel('Range of training data')
-        plt.ylabel('Accuracy')
+        plt.xlabel(xlable)
+        plt.ylabel(ylabel)
         plt.suptitle(title)
         plt.text(0.5, 0.92, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=plt.gcf().transFigure)
         plt.show()
         
     
-    def plot_result(self, dont_plot = ['ae_train','ws_test'], title = ''):
+    def plot_result(self, title = ''):
 
         if not self.is_processed:
             raise ResultsNotProcessedException(\
@@ -213,10 +216,6 @@ class Results_Processor:
         Y_std = self.std_matrix
         legend = np.asarray(self.methods)
         
-        if dont_plot:
-            dont_plot_idx = [i for i, mtd in enumerate(self.methods) if mtd in dont_plot]
-            Y_mean = np.delete(Y_mean, dont_plot_idx, axis=1)
-            Y_std = np.delete(Y_std, dont_plot_idx, axis=1)
-            legend =  np.delete(legend, dont_plot_idx)
-
         self._plot_mean_and_sd(x, Y_mean, Y_std, legend, title)
+
+
