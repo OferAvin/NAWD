@@ -1,7 +1,7 @@
 import modules.IEEE_data_extractor as ieee_data
 import modules.Shu_data_extractor as shu_data
 from modules.chist_era_data_extractor import Chist_Era_data_extractor as sub201_data_extractor
-from modules.Experiment import Experiment as exp
+from modules.experiment import Experiment as exp
 from modules.properties import IEEE_properties as ieee_props
 from modules.properties import sub201_properties  as sub201_props
 
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     sub201_supervised.run_experiment()
 
     sub201_unsupervised = exp('sub201_supervised', sub201_data, sub201_props, [1,2], 1, mode = 'unsupervised')
-    sub201_supervised.run_experiment()
+    sub201_unsupervised.run_experiment()
 
     # IEEE_unsupervised_2c = exp('IEEE_unsupervised_2c', ieee_data, ieee_props, [1,6], 10, mode = 'unsupervised')
     # IEEE_unsupervised_2c.run_experiment()
