@@ -2,8 +2,9 @@ from matplotlib import pyplot as plt
 from modules.results import ResultsProcessor as rp
 import numpy as np
 from modules.properties import result_params
-from typing import Tuple, List
+from typing import Any, Tuple, List
 import os
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class Figuers():
 
@@ -21,8 +22,12 @@ class Figuers():
         self.exps_task_results: List[rp, rp] = [None,None]
         self.exps_origin_results: List[rp, rp] = [None,None]
         self.main_exp = main_exp
-
         self._create_results_for_exps()
+
+        self.x = None
+        self.Y_mean = None
+        self.Y_std = None
+        self.legend = None
 
     def _create_results_for_exps(self):
         for i, exp_name in enumerate(self.exp_names):
@@ -73,38 +78,41 @@ class Figuers():
             self.exps_task_results[i].plot_result(title=f'{exp_name} task results')
             self.exps_origin_results[i].plot_result(title=f'{exp_name} origin results') 
 
-    def combine_results_for_plot(self, result_mode = 'task',unique_method = 'ae_test'):
+    def _combine_results(self, result_mode, unique_methods):
         
         if result_mode is 'task':
             main_exp = self.exps_task_results[self.main_exp]
             secondery_exp = self.exps_task_results[not self.main_exp]
         elif result_mode is 'origin':
             main_exp = self.exps_origin_results[self.main_exp]
-            secondery_exp = self.exps_task_results[not self.main_exp]
+            secondery_exp = self.exps_origin_results[not self.main_exp]
 
-        unique_idx = secondery_exp.methods.index(unique_method) 
-        unique_result = np.expand_dims(secondery_exp.mean_matrix[:, unique_idx], axis=1)
-        unique_std = np.expand_dims(secondery_exp.std_matrix[:, unique_idx], axis=1)
+        unique_idxes = [secondery_exp.methods.index(unique_method) for unique_method in unique_methods]
+
+        unique_result = secondery_exp.mean_matrix[:, unique_idxes]
+        unique_std = secondery_exp.std_matrix[:, unique_idxes]
 
         self.x = main_exp.train_ranges
         self.Y_mean = np.append(main_exp.mean_matrix, unique_result, axis=1)
         self.Y_std = np.append(main_exp.std_matrix, unique_std, axis=1)
-        self.legend = main_exp.methods + [unique_method]
+        self.legend = main_exp.methods + unique_methods
 
-    def plot_results(self, title, legend = None, xlable='Range of training data', ylable= 'Accuracy'):
+
+    def plot_combined_results(self, result_mode = 'task', unique_methods = ['ae_test'],
+                              ax = None , title = '', legend = None, xlable='Range of training data', ylable= 'Accuracy'):
+
+        
+        self._combine_results(result_mode, unique_methods)
 
         legend = self.legend if legend is None else legend
-
         self.exps_task_results[self.main_exp]._plot_mean_and_sd(
             self.x,
             self.Y_mean,
             self.Y_std,
-            legend=legend,
+            ax=ax,
             title=title,
+            legend=legend,
             xlable=xlable,
             ylabel=ylable 
             )
-
-
-
         

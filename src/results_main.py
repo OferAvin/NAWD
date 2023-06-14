@@ -1,30 +1,22 @@
-import modules.IEEE_data_extractor as ieee_data_extractor
-import modules.Shu_data_extractor as shu_data_extractor
-from modules.experiment import Experiment as exp
-from modules.properties import IEEE_properties as props
-from modules.results import ResultsProcessor as rp
 from modules.figuers import Figuers as figs
-import numpy as np
-import os
-import pickle
 import matplotlib.pyplot as plt
 
-# IEEE_unsuper = rp(f_name='task_iters_timestr_20230314-164800.pickle')
-# IEEE_unsuper.filter_sub_by_acc(min_acc=0.6)
-# removed_subs = IEEE_unsuper.removed_subs
-# print(IEEE_unsuper.n_iters)
-# IEEE_unsuper.process_result()
-# # # IEEE_unsuper.plot_result(title="IEEE dataset - unsupervised")
 
-# IEEE_unsuper = rp(f_name='origin_iters_timestr_20230314-164800.pickle')
-# IEEE_unsuper.filter_out_subs_from_results(removed_subs)
-# print(IEEE_unsuper.n_iters)
-# IEEE_unsuper.process_result()
-# IEEE_unsuper.plot_result(title="IEEE dataset - unsupervised (session clasification)")
+ieee_results_files = ['9_IEEE_unsupervised_4c','9_IEEE_supervised_4c']
 
-figure = figs(['9_IEEE_unsupervised_4c','9_IEEE_supervised_4c'], main_exp=1)
-figure.filter_results_by_acc(0.25)
-# figure.plot_all_basic_results()
-figure.combine_results_for_plot()
-figure.plot_results(title="combined result")
+
+IEEE_figure, (ax1,ax2) = plt.subplots(2,1)
+ieee_results = figs(ieee_results_files, main_exp=1)
+ieee_results.filter_results_by_acc(0.25)
+# ieee_results.plot_all_basic_results()
+ieee_results.plot_combined_results(result_mode = 'task', unique_methods = ['ae_test'], ax = ax1)
+ieee_results.plot_combined_results(result_mode = 'origin', unique_methods = ['rec', 'res'], ax=ax2)
+
+
+IEEE_figure1, (ax11,ax12) = plt.subplots(2,1)
+ieee_results.filter_results_by_acc(0)
+
+ieee_results.plot_combined_results(result_mode = 'task', unique_methods = ['ae_test'], ax = ax11)
+ieee_results.plot_combined_results(result_mode = 'origin', unique_methods = ['rec', 'res'], ax=ax12)
+plt.show()
 

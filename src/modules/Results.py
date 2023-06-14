@@ -14,6 +14,25 @@ class ResultsNotProcessedException(Exception):
     pass
 
 class ResultsProcessor:
+    """
+    Class for processing experiment result files.
+
+    Attributes:
+        result_file (str): The path to the experiment result file.
+        ignore_methods (list): List of methods to ignore during processing.
+
+    Methods:
+        __init__(result_file, ignore_methods):
+            Initializes a new instance of the ResultsProcessor class.
+        filter_sub_by_acc(min_acc):
+            Filters out subjects with accuracy less than the specified threshold.
+        filter_out_subs_from_results(subs_to_remove):
+            Filters out specified subjects from the results.
+        process_result():
+            Processes the experiment result, recalculating means and standard deviations.
+        plot_result():
+            Plots the processed results.
+    """
     
     def __init__(self, f_name, ignore_methods = ['ae_train','ws_test']):
         self.f_name = f_name
@@ -28,11 +47,14 @@ class ResultsProcessor:
                 self.results =  pickle.load(f)
         except:
             print("Couldn't load result file!!!")
-            exit()        
+            exit()   
+
+        # Extract all relevant information from result file         
         self.all_iters = list(self.results.keys())
         self.train_ranges = list(self.results[self.all_iters[0]].keys())
         self.all_subs = list(self.results[self.all_iters[0]][self.train_ranges[0]].keys())
         self.methods = list(self.results[self.all_iters[0]][self.train_ranges[0]][self.all_subs[0]].keys())
+
         self.ignore_methods = ignore_methods
         self.methods = [mtd for mtd in self.methods if mtd not in self.ignore_methods]
         self.n_iters = len(self.all_iters)
@@ -47,7 +69,7 @@ class ResultsProcessor:
         self.n_filtered_subs = self.n_total_subs
 
         # Following fields will be set when applying process_result()
-        # mean = mean result per training range
+        # 'mean' is mean result per training range
         self.mean_results = None
         self.mean_matrix : np.ndarray = None
         self.std_matrix : np.ndarray = None 
@@ -75,11 +97,13 @@ class ResultsProcessor:
                   Range: {self.remove_sub_by_range:4d}' )
     
     def filter_out_subs_from_results(self, subs_to_remove = []):
-        '''
-        This function removes `subs to remove` from the results dict 
-        by iterating on `all_iters` and `train_ranges` in the result dict.
-        The function asigns the filtered results to `self.filterd_result`
-        '''
+        """
+        Filters out specified subjects from the results.
+
+        Parameters:
+            subs_to_remove (list): List of subjects to remove.
+        """
+        
         # Remove all subs to remove from the result dict
         filtered_result = deepcopy(self.results)
         for sub in subs_to_remove:
@@ -94,15 +118,15 @@ class ResultsProcessor:
 
 
     def filter_sub_by_acc(self, min_acc = 0.6, method = 'ws_train', range = '0-1'):
-        '''
-         This method filters out subs whith accuracy smaller than `min_acc`
+        """
+        Filters out subjects with accuracy less than the specified threshold.
 
-         the accuracy calculated as the mean over `method` and `range` for each sub 
-
-         in `subs`. in case `subs` is empty than the filter wil go over `self.all_subs`
-
-        '''
-
+        Parameters:
+            min_acc (float): The minimum accuracy threshold.
+            method (str): the method which the mean is calculated on
+            range (str): the range which the mean is calculated on
+        """
+        
         # Find bad subs
         # self.filtered_result = deepcopy(self.results)
         subs_to_remove = [] #only for mehod and range
@@ -178,13 +202,23 @@ class ResultsProcessor:
 
 
     def process_result(self):
+        """
+        Processes the experiment result, recalculating means and standard deviations.
+
+        This method takes into account the removed subjects during processing.
+        """
+
         self._calculate_mean_result_over_iters_and_subs()
         self._prepare_results_for_plots()
         self.is_processed = True
 
 
-    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable, ylabel):
-        fig, ax = plt.subplots()
+    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable = 'Training range', ylabel = 'Accuracy', ax = None):
+        do_show = False
+        if not ax:
+            fig, ax = plt.subplots()
+            do_show = True
+            
         for i in range(Y_mean.shape[1]):
             ax.plot(x, Y_mean[:,i],  
                             label = legend[i],       
@@ -201,11 +235,16 @@ class ResultsProcessor:
         plt.ylabel(ylabel)
         plt.suptitle(title)
         plt.text(0.5, 0.92, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=plt.gcf().transFigure)
-        plt.show()
+        
+        if do_show:
+            plt.show()
+        # return fig, ax
         
     
     def plot_result(self, title = ''):
-
+        """
+        Plots the processed results.
+        """
         if not self.is_processed:
             raise ResultsNotProcessedException(\
                 'In order to plot results you must first apply process_result() ')
