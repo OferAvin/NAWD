@@ -80,10 +80,10 @@ class Figuers():
 
     def _combine_results(self, result_mode, unique_methods):
         
-        if result_mode is 'task':
+        if result_mode == 'task':
             main_exp = self.exps_task_results[self.main_exp]
             secondery_exp = self.exps_task_results[not self.main_exp]
-        elif result_mode is 'origin':
+        elif result_mode == 'origin':
             main_exp = self.exps_origin_results[self.main_exp]
             secondery_exp = self.exps_origin_results[not self.main_exp]
 
@@ -92,14 +92,14 @@ class Figuers():
         unique_result = secondery_exp.mean_matrix[:, unique_idxes]
         unique_std = secondery_exp.std_matrix[:, unique_idxes]
 
-        self.x = main_exp.train_ranges
+        self.x = range(1,len(main_exp.train_ranges)+1)
         self.Y_mean = np.append(main_exp.mean_matrix, unique_result, axis=1)
         self.Y_std = np.append(main_exp.std_matrix, unique_std, axis=1)
         self.legend = main_exp.methods + unique_methods
 
 
     def plot_combined_results(self, result_mode = 'task', unique_methods = ['ae_test'],
-                              ax = None , title = '', legend = None, xlable='Range of training data', ylable= 'Accuracy'):
+                              ax = None , title = '', legend = None, xlable='', ylable= ''):
 
         
         self._combine_results(result_mode, unique_methods)

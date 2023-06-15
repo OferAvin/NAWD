@@ -213,32 +213,33 @@ class ResultsProcessor:
         self.is_processed = True
 
 
-    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable = 'Training range', ylabel = 'Accuracy', ax = None):
+    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable = '', ylabel = '', ax = None):
         do_show = False
         if not ax:
             fig, ax = plt.subplots()
             do_show = True
-            
+
         for i in range(Y_mean.shape[1]):
             ax.plot(x, Y_mean[:,i],  
                             label = legend[i],       
                             marker = ',',           
                             linestyle = '-',   
                             color = self.colors[i],      
-                            linewidth = '2.5'      
+                            linewidth = '1.5'      
                                 ) 
             ax.fill_between(x, Y_mean[:,i] - Y_std[:,i], Y_mean[:,i] + Y_std[:,i], color=self.colors[i], alpha=self.alpha)
-    
+
         ax.legend()
         # Add labels and title to the plot
-        plt.xlabel(xlable)
-        plt.ylabel(ylabel)
-        plt.suptitle(title)
-        plt.text(0.5, 0.92, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=plt.gcf().transFigure)
+        ax.set_title(title, fontsize=10, pad=8)
+        ax.set_xlabel(xlable)
+        ax.set_ylabel(ylabel)
+        ax.text(0.5, 0.99, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=ax.transAxes, fontsize=8)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)   
         
         if do_show:
             plt.show()
-        # return fig, ax
         
     
     def plot_result(self, title = ''):
@@ -250,7 +251,7 @@ class ResultsProcessor:
                 'In order to plot results you must first apply process_result() ')
 
 
-        x = self.train_ranges
+        x = range(len(self.train_ranges))+1
         Y_mean = self.mean_matrix
         Y_std = self.std_matrix
         legend = np.asarray(self.methods)
