@@ -213,7 +213,7 @@ class ResultsProcessor:
         self.is_processed = True
 
 
-    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable = '', ylabel = '', ax = None):
+    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable = '', ylabel = '', ax = None, legend_fontsize = "6"):
         do_show = False
         if not ax:
             fig, ax = plt.subplots()
@@ -229,12 +229,14 @@ class ResultsProcessor:
                                 ) 
             ax.fill_between(x, Y_mean[:,i] - Y_std[:,i], Y_mean[:,i] + Y_std[:,i], color=self.colors[i], alpha=self.alpha)
 
-        ax.legend()
+        ax.legend(fontsize=legend_fontsize)
         # Add labels and title to the plot
-        ax.set_title(title, fontsize=10, pad=8)
+        ax.set_title(title, fontsize=8, pad=7)
         ax.set_xlabel(xlable)
         ax.set_ylabel(ylabel)
-        ax.text(0.5, 0.99, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=ax.transAxes, fontsize=8)
+        ax.tick_params(axis='x', labelsize=8)
+        ax.tick_params(axis='y', labelsize=8)
+        ax.text(0.5, 0.995, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=ax.transAxes, fontsize=6)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)   
         
@@ -242,7 +244,7 @@ class ResultsProcessor:
             plt.show()
         
     
-    def plot_result(self, title = ''):
+    def plot_result(self, title = '', legend_fontsize="10", ax=None):
         """
         Plots the processed results.
         """
@@ -251,11 +253,11 @@ class ResultsProcessor:
                 'In order to plot results you must first apply process_result() ')
 
 
-        x = range(len(self.train_ranges))+1
+        x = range(1,len(self.train_ranges)+1)
         Y_mean = self.mean_matrix
         Y_std = self.std_matrix
         legend = np.asarray(self.methods)
         
-        self._plot_mean_and_sd(x, Y_mean, Y_std, legend, title)
+        self._plot_mean_and_sd(x, Y_mean, Y_std, legend, title, legend_fontsize=legend_fontsize, ax=ax)
 
 

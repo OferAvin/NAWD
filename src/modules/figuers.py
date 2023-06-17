@@ -8,7 +8,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class Figuers():
 
-    def __init__(self, exp_names: Tuple[str, str], main_exp: bool):
+    def __init__(self, exp_names: Tuple[str, str], main_exp: bool, subplots_dim: Tuple[int,int], fig_size: Tuple[float,float], title: str,
+                 title_fontsize = 9, xlable = 'Number of sessions in training set', ylable= 'Accuracy' ):
         """
         Initialize an instance of Figuers.
 
@@ -24,10 +25,18 @@ class Figuers():
         self.main_exp = main_exp
         self._create_results_for_exps()
 
+        self.fig, self.axes = plt.subplots(*subplots_dim)
+        self.fig.set_size_inches(fig_size)
+        self.title = self.fig.suptitle(title, x=0.05, y=0.98, ha='left', va='top')
+        self.title.set_fontsize(title_fontsize)
+        self.fig.text(0.5, 0.04, xlable, ha='center')
+        self.fig.text(0.02, 0.5, ylable, va='center', rotation='vertical')
+
         self.x = None
         self.Y_mean = None
         self.Y_std = None
         self.legend = None
+
 
     def _create_results_for_exps(self):
         for i, exp_name in enumerate(self.exp_names):
@@ -71,12 +80,28 @@ class Figuers():
 
         self._process_all_results()
 
-    def plot_all_basic_results(self):
+        print(f'Results are now filtered by min  of: {min_acc}!')
+
+    def _get_next_empty_axis(self):
+
+        for ax in self.axes.flatten():
+            if len(ax.lines) == 0:
+                return ax
+            
+    def plot_all_basic_results(self, do_subplots = True):
+       
+        fig, axes = plt.subplots(2,2) if do_subplots else (None,None)
 
         for i in range(len(self.exp_names)):
             exp_name = self.exp_names[i].replace('_', ' ')
-            self.exps_task_results[i].plot_result(title=f'{exp_name} task results')
-            self.exps_origin_results[i].plot_result(title=f'{exp_name} origin results') 
+            if axes:
+                self.exps_task_results[i].plot_result(title=f'{exp_name} task results', ax=axes[i, 0])
+                self.exps_origin_results[i].plot_result(title=f'{exp_name} origin results', ax=axes[i, 1]) 
+            else:
+                self.exps_task_results[i].plot_result(title=f'{exp_name} task results')
+                self.exps_origin_results[i].plot_result(title=f'{exp_name} origin results')
+
+        return fig, axes
 
     def _combine_results(self, result_mode, unique_methods):
         
@@ -98,10 +123,14 @@ class Figuers():
         self.legend = main_exp.methods + unique_methods
 
 
-    def plot_combined_results(self, result_mode = 'task', unique_methods = ['ae_test'],
-                              ax = None , title = '', legend = None, xlable='', ylable= ''):
+    def add_combined_results_subplot(self, result_mode = 'task', unique_methods = ['ae_test'],
+                              ax = None , title = '', legend = None, xlable='', ylable= '', legend_fontsize = "6"):
 
-        
+        if ax is None:
+            ax = self._get_next_empty_axis()
+        else:
+            ax = self.axes.flatten[ax] 
+
         self._combine_results(result_mode, unique_methods)
 
         legend = self.legend if legend is None else legend
@@ -113,6 +142,7 @@ class Figuers():
             title=title,
             legend=legend,
             xlable=xlable,
-            ylabel=ylable 
+            ylabel=ylable,
+            legend_fontsize=legend_fontsize 
             )
         
