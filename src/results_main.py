@@ -19,7 +19,6 @@ task_legend = ['WS train', 'BS train', 'SAE test', 'AE test']
 origin_legend = ['Origin', 'Reconstructed SAE', 'Residuals SAE', 'Reconstructed AE', 'Residuals AE']
 
 
-
 ##### Sub201 panel #####
 sub201_results = figs(
     sub201_results_files,
@@ -76,8 +75,6 @@ shu_results= figs(
     fig_size=shu_figs_size,
     title="Figure4")
 
-
-shu_results.corr_res(method='res', mean_over='subs')
 
 ax = shu_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], title="Shu task", legend=task_legend,
                                          ylable='Accuracy')
