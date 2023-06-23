@@ -67,6 +67,7 @@ ax3 = ieee_results.add_combined_results_subplot(result_mode='task', unique_metho
                                             plot_n_subs = False) 
 ax3.text(0.02, 0.98, 'B', transform=ax3.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
+# set the same y ticks for ax1 and ax3
 yticks = ax3.get_yticks()
 ax1.set_yticks(yticks)
 ylim = ax3.get_ylim()
@@ -98,6 +99,7 @@ ax3 = shu_results.add_combined_results_subplot(result_mode='task', unique_method
                                             plot_n_subs = False)
 ax3.text(0.02, 0.98, 'B', transform=ax3.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
+# set the same y ticks for ax1 and ax3
 yticks = ax3.get_yticks()
 ax1.set_yticks(yticks)
 ylim = ax3.get_ylim()
