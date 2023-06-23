@@ -229,7 +229,8 @@ class ResultsProcessor:
         self.is_processed = True
 
 
-    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable = '', ylabel = '', ax = None, legend_fontsize = "6"):
+    def _plot_mean_and_sd(self, x, Y_mean, Y_std, legend, title, xlable = '', ylabel = '',
+                          ax = None, legend_fontsize = "6", plot_n_subs = True):
         do_show = False
         if not ax:
             fig, ax = plt.subplots()
@@ -252,7 +253,8 @@ class ResultsProcessor:
         ax.set_ylabel(ylabel, fontsize=7)
         ax.tick_params(axis='x', labelsize=6)
         ax.tick_params(axis='y', labelsize=6)
-        ax.text(0.5, 0.995, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=ax.transAxes, fontsize=6)
+        if plot_n_subs:
+            ax.text(0.5, 0.995, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=ax.transAxes, fontsize=6)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)   
         

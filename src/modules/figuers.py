@@ -114,7 +114,7 @@ class Figuers():
                 result_mode (str): Specifies the mode for selecting the results. Valid options are 'task' and 'origin'.
                 unique_methods (list): A list of unique methods whose results from self.secondary_exp will be appended to self.main_exp.
         """
-        
+
         if result_mode == 'task':
             main_exp = self.exps_task_results[self.main_exp]
             secondary_exp = self.exps_task_results[self.secondary_exp]
@@ -133,7 +133,8 @@ class Figuers():
         self.legend = main_exp.methods + unique_methods
 
     def add_combined_results_subplot(self, result_mode = 'task', unique_methods = ['ae_test'],
-                              ax = None , title = '', legend = None, xlable='', ylable='', legend_fontsize = "6"):
+                                    ax = None , title = '', legend = None, xlable='',
+                                    ylable='', legend_fontsize = "6", plot_n_subs = True):
 
         if ax is None:
             ax = self._get_next_empty_axis()
@@ -152,7 +153,8 @@ class Figuers():
             legend=legend,
             xlable=xlable,
             ylabel=ylable,
-            legend_fontsize=legend_fontsize 
+            legend_fontsize=legend_fontsize,
+            plot_n_subs = plot_n_subs 
             )
         
         return ax
@@ -179,9 +181,9 @@ class Figuers():
         regression_line = slope * task_vec + intercept
 
         #### Plot results ####
-        if method is 'rec':
+        if method == 'rec':
             mtd_str = 'Reconstructed'  
-        elif method is 'res':
+        elif method == 'res':
             mtd_str = 'Residuals'
         else:
             mtd_str = 'Original'

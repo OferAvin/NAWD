@@ -15,7 +15,7 @@ ieee_subplots_dim = shu_subplots_dim = (1,3)
 sub201_fig_size = (3.35, 5.51) # inches
 ieee_figs_size = shu_figs_size = (7.09, 2.36)
 
-task_legend = ['WS train', 'BS train', 'SAE test', 'AE test']
+task_legend = ['WS', 'BS', 'SAE', 'AE']
 origin_legend = ['Origin', 'Reconstructed SAE', 'Residuals SAE', 'Reconstructed AE', 'Residuals AE']
 
 
@@ -29,12 +29,13 @@ sub201_results = figs(
 
 ax = sub201_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'],
                                             title="Sub201 task", legend=task_legend, 
-                                            ylable='Accuracy')
+                                            ylable='Accuracy', plot_n_subs = False)
 ax.text(0.02, 0.98, 'A', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
 ax = sub201_results.add_combined_results_subplot(result_mode='origin', unique_methods=['rec', 'res'], 
                                             title="Sub201 origin", legend=origin_legend, 
-                                            xlable = 'Number of sessions in training set', ylable='Accuracy')
+                                            xlable = 'Number of sessions in training set', ylable='Accuracy',
+                                            plot_n_subs = False)
 ax.text(0.02, 0.98, 'B', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
 plt.subplots_adjust(hspace=0.4, left=0.15)
@@ -49,21 +50,27 @@ ieee_results = figs(
     title="Figure3")
 
 # ieee_results.plot_all_basic_results(do_subplots=True)
-ax = ieee_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], 
-                                          title="IEEE task", legend=task_legend, 
-                                          ylable='Accuracy')
-ax.text(0.02, 0.98, 'A', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
+ax1 = ieee_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], 
+                                            title="IEEE task", legend=task_legend, 
+                                            ylable='Accuracy', plot_n_subs = False)
+ax1.text(0.02, 0.98, 'A', transform=ax1.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
-ax = ieee_results.add_combined_results_subplot(result_mode='origin', unique_methods=['rec', 'res'], 
-                                          ax=2, title="IEEE origin", legend=origin_legend,
-                                          xlable = 'Number of sessions in training set')
-ax.text(0.02, 0.98, 'B', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
+ax2 = ieee_results.add_combined_results_subplot(result_mode='origin', unique_methods=['rec', 'res'], 
+                                            ax=2, title="IEEE origin", legend=origin_legend,
+                                            plot_n_subs = False)
+ax2.text(0.02, 0.98, 'C', transform=ax2.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
 ieee_results.filter_results_by_acc(0.3)
-ax = ieee_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], 
-                                          title="IEEE task > 30%", legend=task_legend) 
-ax.text(0.02, 0.98, 'C', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
+ax3 = ieee_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], 
+                                            title="IEEE task > 30%", legend=task_legend,
+                                            xlable = 'Number of sessions in training set',
+                                            plot_n_subs = False) 
+ax3.text(0.02, 0.98, 'B', transform=ax3.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
+yticks = ax3.get_yticks()
+ax1.set_yticks(yticks)
+ylim = ax3.get_ylim()
+ax1.set_ylim(ylim)
 plt.subplots_adjust(bottom=0.15)
 
 
@@ -76,19 +83,25 @@ shu_results= figs(
     title="Figure4")
 
 
-ax = shu_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], title="Shu task", legend=task_legend,
-                                         ylable='Accuracy')
-ax.text(0.02, 0.98, 'A', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
+ax1 = shu_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], title="Shu task", legend=task_legend,
+                                            ylable='Accuracy', plot_n_subs = False)
+ax1.text(0.02, 0.98, 'A', transform=ax1.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
-ax = shu_results.add_combined_results_subplot(result_mode='origin', unique_methods=['rec', 'res'], 
-                                            ax=2, title="Shu origin", legend=origin_legend,
-                                            xlable = 'Number of sessions in training set')
-ax.text(0.02, 0.98, 'B', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
+ax2 = shu_results.add_combined_results_subplot(result_mode='origin', unique_methods=['rec', 'res'], 
+                                            ax=2, title="Shu origin", legend=origin_legend, plot_n_subs = False)
+ax2.text(0.02, 0.98, 'C', transform=ax2.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
 
 shu_results.filter_results_by_acc(0.55)
-ax = shu_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], 
-                                         title="Shu task > 55%", legend=task_legend)
-ax.text(0.02, 0.98, 'C', transform=ax.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
+ax3 = shu_results.add_combined_results_subplot(result_mode='task', unique_methods=['ae_test'], 
+                                            title="Shu task > 55%", legend=task_legend,
+                                            xlable = 'Number of sessions in training set', 
+                                            plot_n_subs = False)
+ax3.text(0.02, 0.98, 'B', transform=ax3.transAxes, fontsize=10, fontweight='bold', va='top', ha='left')
+
+yticks = ax3.get_yticks()
+ax1.set_yticks(yticks)
+ylim = ax3.get_ylim()
+ax1.set_ylim(ylim)
 
 plt.subplots_adjust(bottom=0.15)
 
