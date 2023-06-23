@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.markers import MarkerStyle
 import numpy as np
 import pickle
 from copy import deepcopy
@@ -153,7 +154,7 @@ class ResultsProcessor:
 
     def _calculate_mean_result_over_iters_and_subs(self):
         '''
-        #This function calculates the mean over the subjects and then
+        This function calculates the mean over the subjects and then
 
         calculates mean and standard error over iterations for each training range and method
 
@@ -200,6 +201,21 @@ class ResultsProcessor:
         self.mean_matrix = np.asarray(mean_results_mat)
         self.std_matrix = np.asarray(std_results_mat)
 
+    def get_subs_X_ranges_mat(self, mtd):
+
+        results = self.results
+
+        mtd_mat = np.empty([self.n_total_subs, self.n_ranges])
+        for s_i, sub in enumerate(self.all_subs):
+            result_per_iter = np.empty([self.n_iters, self.n_ranges])
+            for i, itr in enumerate(self.all_iters):
+                # collect results from all subs 
+                result_per_iter[i, :] = [results[itr][rng][sub][mtd] if sub in results[itr][rng] else np.nun for rng in self.train_ranges ]
+            
+            mtd_mat[s_i,:] = np.nanmean(result_per_iter, axis=0)
+
+        return mtd_mat
+ 
 
     def process_result(self):
         """
@@ -232,10 +248,10 @@ class ResultsProcessor:
         ax.legend(fontsize=legend_fontsize)
         # Add labels and title to the plot
         ax.set_title(title, fontsize=8, pad=7)
-        ax.set_xlabel(xlable)
-        ax.set_ylabel(ylabel)
-        ax.tick_params(axis='x', labelsize=8)
-        ax.tick_params(axis='y', labelsize=8)
+        ax.set_xlabel(xlable, fontsize=7)
+        ax.set_ylabel(ylabel, fontsize=7)
+        ax.tick_params(axis='x', labelsize=6)
+        ax.tick_params(axis='y', labelsize=6)
         ax.text(0.5, 0.995, f'({self.n_filtered_subs} subjects)', ha='center', va='center', transform=ax.transAxes, fontsize=6)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)   
