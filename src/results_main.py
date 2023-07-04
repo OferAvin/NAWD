@@ -16,7 +16,7 @@ sub201_fig_size = (3.35, 5.51) # inches
 ieee_figs_size = shu_figs_size = (7.09, 2.36)
 
 task_legend = ['WS', 'BS', 'SAE', 'AE']
-origin_legend = ['Origin', 'Reconstructed SAE', 'Residuals SAE', 'Reconstructed AE', 'Residuals AE']
+origin_legend = ['Original EEG', 'Reconstructed SAE', 'Residuals SAE', 'Reconstructed AE', 'Residuals AE']
 
 
 ##### Sub201 panel #####
@@ -109,6 +109,8 @@ plt.subplots_adjust(bottom=0.15)
 
 # Show all panels
 plt.show()
+
+
 
 # fig, axs = plt.subplots(2,2)
 
