@@ -3,19 +3,12 @@ import torch
 import sklearn
 import numpy as np
 
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score
-from mne_features.feature_extraction import FeatureExtractor
-from torch.utils.data import random_split, DataLoader, Dataset
 from torch.nn import functional as F
 from torch import nn
 from pytorch_lightning.core.module import LightningModule
-from pytorch_lightning.loggers import TensorBoardLogger
 from scipy.stats import norm, wasserstein_distance
-from torchmetrics.classification import BinaryAccuracy
 
 from .utils import *
 

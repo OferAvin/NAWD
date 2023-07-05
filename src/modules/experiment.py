@@ -11,7 +11,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from .models import convolution_AE         
 from .properties import hyper_params as params
 from .properties import result_params
-
+from .utils import EEGDataSet_signal_by_day
 
 class NoEEGDataException(Exception):
     pass
@@ -64,12 +64,30 @@ class Experiment():
                 os.remove(last_iteration_origin_file) 
 
 
+    def _origin_day_clf(self, EEGdict, AE_model):
+        # Use day zero classifier for classifying the reconstructed eeg per day
+        
+        # get relevant data
+        signal_test_data = EEGDataSet_signal_by_day(EEGdict, [0, len(EEGdict)])
+        orig_signal, _, labels = signal_test_data.getAllItems()
+        rec_signal = AE_model(orig_signal).detach().numpy()
+        res_signal = orig_signal - rec_signal
+        
+        # change labels from 1hot to int
+        labels = np.argmax(labels, axis=1)
+        
+        score_orig, _ = csp_score(np.float64(orig_signal.detach().numpy()), labels, cv_N = 5, classifier = False)
+        score_rec, _ = csp_score(np.float64(rec_signal), labels, cv_N = 5, classifier = False)
+        score_res, _ = csp_score(np.float64(res_signal), labels, cv_N = 5, classifier = False)
+        return score_orig, score_rec, score_res
+
+
     def training_loop(self, train_days, sub):
         
-        one_seb_EEG_data = self.EEG_data[sub]
+        one_sub_EEG_data = self.EEG_data[sub]
 
         # check if enough train days exists
-        if train_days[1] >= len(one_seb_EEG_data):
+        if train_days[1] >= len(one_sub_EEG_data):
             raise Exception("Not enough training days")
 
         # device settings
@@ -81,9 +99,9 @@ class Experiment():
         # Logger
         logger = TensorBoardLogger('../tb_logs', name='EEG_Logger')
         # Shuffle the days
-        random.shuffle(one_seb_EEG_data)
+        random.shuffle(one_sub_EEG_data)
         # Train Dataset
-        signal_data = EEGDataSet_signal_by_day(one_seb_EEG_data, train_days)
+        signal_data = EEGDataSet_signal_by_day(one_sub_EEG_data, train_days)
         signal_data_loader = DataLoader(dataset=signal_data, batch_size=params['btch_sz'], shuffle=True, num_workers=0)
         x, y, days_y = signal_data.getAllItems()
         y = np.argmax(y, -1)
@@ -91,7 +109,6 @@ class Experiment():
         n_task_labels = signal_data.n_task_labels
 
         # Train model on training day
-        metrics = ['classification_loss', 'reconstruction_loss']
         day_zero_AE = convolution_AE(signal_data.n_channels, n_days_labels, n_task_labels, self.model_adjustments, \
                                     params['ae_lrn_rt'], filters_n=params['cnvl_filters'], mode=self.mode)
         day_zero_AE.to(device)
@@ -104,10 +121,10 @@ class Experiment():
         ws_train, day_zero_bench_clf = csp_score(np.float64(x.detach().numpy()), y, cv_N=5, classifier=False)
         
 
-        test_days = [train_days[1], len(one_seb_EEG_data)]
+        test_days = [train_days[1], len(one_sub_EEG_data)]
 
         # Create test Datasets
-        signal_test_data = EEGDataSet_signal(one_seb_EEG_data, test_days)
+        signal_test_data = EEGDataSet_signal(one_sub_EEG_data, test_days)
 
         # get data
         signal_test, y_test = signal_test_data.getAllItems()
@@ -181,7 +198,7 @@ class Experiment():
                     
                     # Day classfication using residuals original and recontrusted EEG
                     print('classifying origin day...')
-                    orig_score, rec_score, res_score = origin_day_clf(self.EEG_data[sub], day_zero_AE)
+                    orig_score, rec_score, res_score = self._origin_day_clf(self.EEG_data[sub], day_zero_AE)
                     origin_per_sub_scores_dict['orig'] = orig_score
                     origin_per_sub_scores_dict['rec'] = rec_score
                     origin_per_sub_scores_dict['res'] = res_score
