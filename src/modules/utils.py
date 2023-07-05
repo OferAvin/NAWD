@@ -100,32 +100,11 @@ def barplot_annotate_brackets(num1, num2, data, center, height, yerr=None, dh=.0
     plt.text(*mid, text, **kwargs)
 
 
-def origin_day_clf(EEGdict, AE_model):
-    # Use day zero classifier for classifying the reconstructed eeg per day
-    
-    # get relevant data
-    signal_test_data = EEGDataSet_signal_by_day(EEGdict, [0, len(EEGdict)])
-    orig_signal, _, labels = signal_test_data.getAllItems()
-    rec_signal = AE_model(orig_signal).detach().numpy()
-    res_signal = orig_signal - rec_signal
-    
-    # change labels from 1hot to int
-    labels = np.argmax(labels, axis=1)
-    
-    score_orig, _ = csp_score(np.float64(orig_signal.detach().numpy()), labels, cv_N = 5, classifier = False)
-    score_rec, _ = csp_score(np.float64(rec_signal), labels, cv_N = 5, classifier = False)
-    score_res, _ = csp_score(np.float64(res_signal), labels, cv_N = 5, classifier = False)
-    return score_orig, score_rec, score_res
-
-
-
 class EEGDataSet_signal_by_day(Dataset):
     def __init__(self, EEGDict, days_range=[0,1]):
         
         # Concat dict      
         X, y, days_y = self.concat(EEGDict, days_range)
-        
-
         
         # Convert from numpy to tensor
         self.X = torch.tensor(X)
@@ -145,7 +124,6 @@ class EEGDataSet_signal_by_day(Dataset):
     
     def getAllItems(self):
         return self.X.float() , self.y, self.days_y
-    
         
     def concat(self, EEGDict, days_range):
         X = []
@@ -178,15 +156,12 @@ class EEGDataSet_signal(Dataset):
         # Concat dict      
         X, y = self.concat(EEGDict, days_range)
         
-
-        
         # Convert from numpy to tensor
         self.X = torch.tensor(X)
         self.n_samples = self.X.shape[0]
         self.n_channels = self.X.shape[1]
         self.y = y
 
-        
     def __getitem__(self, index):
         return self.X[index].float(), self.y[index]
     

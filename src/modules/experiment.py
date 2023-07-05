@@ -12,6 +12,7 @@ from .models import convolution_AE
 from .properties import hyper_params as params
 from .properties import result_params
 from .utils import EEGDataSet_signal_by_day
+from .denoiser import Denoiser
 
 class NoEEGDataException(Exception):
     pass
@@ -68,8 +69,8 @@ class Experiment():
         # Use day zero classifier for classifying the reconstructed eeg per day
         
         # get relevant data
-        signal_test_data = EEGDataSet_signal_by_day(EEGdict, [0, len(EEGdict)])
-        orig_signal, _, labels = signal_test_data.getAllItems()
+        test_dataset = EEGDataSet_signal_by_day(EEGdict, [0, len(EEGdict)])
+        orig_signal, _, labels = test_dataset.getAllItems()
         rec_signal = AE_model(orig_signal).detach().numpy()
         res_signal = orig_signal - rec_signal
         
@@ -90,47 +91,26 @@ class Experiment():
         if train_days[1] >= len(one_sub_EEG_data):
             raise Exception("Not enough training days")
 
-        # device settings
-        proccessor = params['device']
-        device = torch.device(proccessor)
-        accelerator = proccessor if proccessor=='cpu' else 'gpu' 
-        devices = 1 if proccessor =='cpu' else -1 
-        
-        # Logger
-        logger = TensorBoardLogger('../tb_logs', name='EEG_Logger')
         # Shuffle the days
         random.shuffle(one_sub_EEG_data)
         # Train Dataset
-        signal_data = EEGDataSet_signal_by_day(one_sub_EEG_data, train_days)
-        signal_data_loader = DataLoader(dataset=signal_data, batch_size=params['btch_sz'], shuffle=True, num_workers=0)
-        x, y, days_y = signal_data.getAllItems()
+        train_dataset = EEGDataSet_signal_by_day(one_sub_EEG_data, train_days)
+        x, y, days_y = train_dataset.getAllItems()
         y = np.argmax(y, -1)
-        n_days_labels = signal_data.n_days_labels
-        n_task_labels = signal_data.n_task_labels
-
-        # Train model on training day
-        day_zero_AE = convolution_AE(signal_data.n_channels, n_days_labels, n_task_labels, self.model_adjustments, \
-                                    params['ae_lrn_rt'], filters_n=params['cnvl_filters'], mode=self.mode)
-        day_zero_AE.to(device)
-
-        trainer_2 = pl.Trainer(max_epochs=params['n_epochs'], logger=logger, accelerator=accelerator , devices=devices)
-        trainer_2.fit(day_zero_AE, train_dataloaders=signal_data_loader)
-        
-        # CV On the training set (with and without ae)
-        ws_ae_train, day_zero_AE_clf = csp_score(np.float64(day_zero_AE(x).detach().numpy()), y, cv_N=5, classifier=False)
-        ws_train, day_zero_bench_clf = csp_score(np.float64(x.detach().numpy()), y, cv_N=5, classifier=False)
-        
-
         test_days = [train_days[1], len(one_sub_EEG_data)]
 
         # Create test Datasets
-        signal_test_data = EEGDataSet_signal(one_sub_EEG_data, test_days)
+        test_dataset = EEGDataSet_signal(one_sub_EEG_data, test_days)
 
         # get data
-        signal_test, y_test = signal_test_data.getAllItems()
-        # reconstruct EEG using day 0 AE
-        rec_signal_zero = day_zero_AE(signal_test).detach().numpy()
+        signal_test, y_test = test_dataset.getAllItems()
 
+        denoiser = Denoiser(train_dataset, test_dataset, self.model_adjustments, self.mode)
+        denoised_signal = denoiser.denoise()
+        AE_denoiser = denoiser.model
+ 
+        ws_ae_train, day_zero_AE_clf = csp_score(np.float64(AE_denoiser(x).detach().numpy()), y, cv_N=5, classifier=False)
+        ws_train, day_zero_bench_clf = csp_score(np.float64(x.detach().numpy()), y, cv_N=5, classifier=False)
 
         # Use models
         # within session cv on the test set (mean on test set)
@@ -138,9 +118,9 @@ class Experiment():
         # Using day 0 classifier for test set inference (mean on test set)
         bs_test = csp_score(np.float64(signal_test.detach().numpy()), y_test, cv_N=5, classifier=day_zero_bench_clf)
         # Using day 0 classifier + AE for test set inference (mean on test set)
-        bs_ae_test = csp_score(rec_signal_zero, y_test, cv_N=5, classifier=day_zero_AE_clf)
+        bs_ae_test = csp_score(denoised_signal, y_test, cv_N=5, classifier=day_zero_AE_clf)
         
-        return ws_train, ws_ae_train, ws_test, bs_test, bs_ae_test, day_zero_AE
+        return ws_train, ws_ae_train, ws_test, bs_test, bs_ae_test, AE_denoiser
 
 
 
@@ -183,7 +163,7 @@ class Experiment():
                     
                     print('training model...\n')
                     try:
-                        ws_train, ws_ae_train, ws_test, bs_test, ae_test, day_zero_AE = self.training_loop(curr_days_rng, sub)
+                        ws_train, ws_ae_train, ws_test, bs_test, ae_test, AE_denoiser = self.training_loop(curr_days_rng, sub)
                     except Exception as e:
                         print(f'Can\'t train a model for sub: {sub} with last training day: {last_train_day} because:')
                         print(e)
@@ -198,7 +178,7 @@ class Experiment():
                     
                     # Day classfication using residuals original and recontrusted EEG
                     print('classifying origin day...')
-                    orig_score, rec_score, res_score = self._origin_day_clf(self.EEG_data[sub], day_zero_AE)
+                    orig_score, rec_score, res_score = self._origin_day_clf(self.EEG_data[sub], AE_denoiser)
                     origin_per_sub_scores_dict['orig'] = orig_score
                     origin_per_sub_scores_dict['rec'] = rec_score
                     origin_per_sub_scores_dict['res'] = res_score
