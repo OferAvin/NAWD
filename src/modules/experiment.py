@@ -65,13 +65,13 @@ class Experiment():
                 os.remove(last_iteration_origin_file) 
 
 
-    def _origin_day_clf(self, EEGdict, AE_model):
+    def _origin_day_clf(self, EEGdict, AE_denoiser):
         # Use day zero classifier for classifying the reconstructed eeg per day
         
         # get relevant data
         test_dataset = EEGDataSet_signal_by_day(EEGdict, [0, len(EEGdict)])
         orig_signal, _, labels = test_dataset.getAllItems()
-        rec_signal = AE_model(orig_signal).detach().numpy()
+        rec_signal = AE_denoiser.denoise(test_dataset)
         res_signal = orig_signal - rec_signal
         
         # change labels from 1hot to int
@@ -85,32 +85,34 @@ class Experiment():
 
     def training_loop(self, train_days, sub):
         
-        one_sub_EEG_data = self.EEG_data[sub]
+        single_sub_EEG_data = self.EEG_data[sub]
 
         # check if enough train days exists
-        if train_days[1] >= len(one_sub_EEG_data):
+        if train_days[1] >= len(single_sub_EEG_data):
             raise Exception("Not enough training days")
 
         # Shuffle the days
-        random.shuffle(one_sub_EEG_data)
+        random.shuffle(single_sub_EEG_data)
         # Train Dataset
-        train_dataset = EEGDataSet_signal_by_day(one_sub_EEG_data, train_days)
-        x, y, days_y = train_dataset.getAllItems()
+        train_dataset = EEGDataSet_signal_by_day(single_sub_EEG_data, train_days)
+        train_x, y, days_y = train_dataset.getAllItems()
         y = np.argmax(y, -1)
-        test_days = [train_days[1], len(one_sub_EEG_data)]
+        test_days = [train_days[1], len(single_sub_EEG_data)]
 
         # Create test Datasets
-        test_dataset = EEGDataSet_signal(one_sub_EEG_data, test_days)
+        test_dataset = EEGDataSet_signal_by_day(single_sub_EEG_data, test_days)
 
         # get data
-        signal_test, y_test = test_dataset.getAllItems()
+        signal_test, y_test, _ = test_dataset.getAllItems()
+        y_test = np.argmax(y_test, -1)
 
-        denoiser = Denoiser(train_dataset, test_dataset, self.model_adjustments, self.mode)
-        denoised_signal = denoiser.denoise()
-        AE_denoiser = denoiser.model
+        # Fit AE_denoiser and use fitted model
+        denoiser = Denoiser(self.model_adjustments, self.mode)
+        denoiser.fit(train_dataset)
+        denoised_signal = denoiser.denoise(test_dataset)
  
-        ws_ae_train, day_zero_AE_clf = csp_score(np.float64(AE_denoiser(x).detach().numpy()), y, cv_N=5, classifier=False)
-        ws_train, day_zero_bench_clf = csp_score(np.float64(x.detach().numpy()), y, cv_N=5, classifier=False)
+        ws_ae_train, day_zero_AE_clf = csp_score(np.float64(denoiser.denoise(train_dataset)), y, cv_N=5, classifier=False)
+        ws_train, day_zero_bench_clf = csp_score(np.float64(train_x.detach().numpy()), y, cv_N=5, classifier=False)
 
         # Use models
         # within session cv on the test set (mean on test set)
@@ -120,7 +122,7 @@ class Experiment():
         # Using day 0 classifier + AE for test set inference (mean on test set)
         bs_ae_test = csp_score(denoised_signal, y_test, cv_N=5, classifier=day_zero_AE_clf)
         
-        return ws_train, ws_ae_train, ws_test, bs_test, bs_ae_test, AE_denoiser
+        return ws_train, ws_ae_train, ws_test, bs_test, bs_ae_test, denoiser
 
 
 
